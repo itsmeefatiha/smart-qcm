@@ -1,0 +1,13 @@
+Flask==3.0.0
+python-dotenv
+flask-cors
+Flask-SQLAlchemy
+Flask-Migrate
+psycopg2-binary
+Flask-JWT-Extended
+bcrypt
+transformers
+torch
+PyPDF2
+python-docx
+email-validator
