@@ -1,12 +1,12 @@
 from flask import Flask
-from config import Config
 from src.extensions import db, migrate, jwt, cors
 
-def create_app(config_class=Config):
-    app = Flask(__name__)
-    app.config.from_object(config_class)
+def create_app():
+    app = Flask(__name__, instance_relative_config=True)
 
-    # Initialize extensions with the app
+    app.config.from_object('config.Config')
+    app.config.from_pyfile('config.py', silent=True)
+
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
