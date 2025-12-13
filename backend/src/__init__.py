@@ -1,5 +1,7 @@
 from flask import Flask
-from src.extensions import db, migrate, jwt, cors
+from src.extensions import db, migrate, jwt, cors, bcrypt
+from src.auth import auth_bp
+from src.users import users_bp
 
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
@@ -11,10 +13,9 @@ def create_app():
     migrate.init_app(app, db)
     jwt.init_app(app)
     cors.init_app(app)
+    bcrypt.init_app(app)
 
-    # Test Route
-    @app.route('/')
-    def hello():
-        return {"message": "Database Connected Successfully!", "status": "success"}
+    app.register_blueprint(auth_bp, url_prefix="/auth")
+    app.register_blueprint(users_bp, url_prefix="/users")
 
     return app
