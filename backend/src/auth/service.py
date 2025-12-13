@@ -19,7 +19,7 @@ class AuthService:
         if user and bcrypt.check_password_hash(user.password_hash, password):
             # Create JWT Token
             # identity=user.id means get_jwt_identity() will return the ID
-            access_token = create_access_token(identity=user.id)
+            access_token = create_access_token(identity=str(user.id))
             return {
                 "access_token": access_token,
                 "user": user.to_dict()
