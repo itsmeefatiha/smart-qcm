@@ -1,5 +1,5 @@
 from flask import Flask
-from src.extensions import db, migrate, jwt, cors, bcrypt
+from src.extensions import db, migrate, jwt, cors, bcrypt, mail
 from src.auth import auth_bp
 from src.users import users_bp
 from src.documents import documents_bp
@@ -15,6 +15,7 @@ def create_app():
     jwt.init_app(app)
     cors.init_app(app)
     bcrypt.init_app(app)
+    mail.init_app(app)
 
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(users_bp, url_prefix="/users")
