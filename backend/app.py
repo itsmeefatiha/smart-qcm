@@ -1,4 +1,5 @@
 from src import create_app
+from config import Config
 from src.exams import exams_bp
 
 app = create_app()

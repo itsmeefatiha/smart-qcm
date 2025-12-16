@@ -51,3 +51,7 @@ class DocumentService:
     @staticmethod
     def get_user_documents(user_id):
         return DocumentRepository.get_all_by_user(user_id)
+
+    @staticmethod
+    def get_document_by_id(doc_id):
+        return DocumentRepository.get_by_id(doc_id)
