@@ -1,38 +1,68 @@
-# ia/service.py
-from ia import prompts, model
-from ia.schemas import Question, Choice
-import re
+from src.documents.service import DocumentService # Import du service existant
+from .gemini_model import GeminiQCMGenerator
+from .repository import QCMRepository
+from src.extensions import db # Pour les transactions en cas de besoin
 
-def clean_text(text: str) -> str:
-    return text.replace("\n", " ").strip()
+class QCMService:
+    @staticmethod
+    def generate_and_save_qcm(document_id: int, user_id: int, num_questions: int = 5):
+        # 1. Récupérer le Document et le texte
+        document = DocumentService.get_document_by_id(document_id)
+        if not document:
+            return None, "Document introuvable."
+        
+        extracted_text = document.extracted_text
+        if not extracted_text:
+            return None, "Texte du document vide. Veuillez le ré-extraire."
+        
+        # 2. Appeler le modèle Gemini pour la génération
+        try:
+            generator = GeminiQCMGenerator()
+            # Utilise le nom de fichier comme titre par défaut
+            qcm_data = generator.generate_qcm_json(
+                document_text=extracted_text, 
+                title=f"QCM {document.module} - {document.filename}",
+                num_questions=num_questions
+            )
+        except ValueError as e:
+            return None, str(e) # Erreur de clé API
+            
+        if not qcm_data:
+            return None, "La génération du QCM par l'IA a échoué. Veuillez réessayer."
+            
+        # 3. Formater les données pour le repository
+        questions_to_save = []
+        for q in qcm_data.get('questions', []):
+            question_data = {
+                'question_text': q['question_text'],
+                'choices': []
+            }
+            for c in q['choices']:
+                question_data['choices'].append({
+                    'choice_text': c['choice_text'],
+                    'is_correct': c['is_correct']
+                })
+            questions_to_save.append(question_data)
+            
+        qcm_title = qcm_data.get('qcm_title', f"QCM de {document.filename}")
+            
+        # 4. Sauvegarder dans la base de données
+        try:
+            new_qcm = QCMRepository.create_qcm(
+                title=qcm_title,
+                document_id=document_id,
+                user_id=user_id,
+                questions_data=questions_to_save
+            )
+            return new_qcm, None
+        except Exception as e:
+            db.session.rollback()
+            return None, f"Erreur de sauvegarde en base de données: {str(e)}"
 
-def parse_qcm_output(output_text: str):
-    """
-    Parse simple pour transformer la sortie du modèle en questions + choix
-    Ici on suppose que le modèle renvoie des QCM sous format :
-    Q1: Question ?
-    a) Option1
-    b) Option2
-    c) Option3
-    d) Option4 (Correct)
-    """
-    questions = []
-    blocks = re.split(r'Q\d+:', output_text)[1:]  # ignore tout avant Q1
-    for block in blocks:
-        lines = block.strip().split('\n')
-        q_text = lines[0].strip()
-        choices = []
-        for line in lines[1:]:
-            line = line.strip()
-            is_correct = "(Correct)" in line
-            choice_text = line.replace("(Correct)", "").strip()
-            choices.append(Choice(text=choice_text, is_correct=is_correct))
-        questions.append(Question(text=q_text, choices=choices))
-    return questions
+    @staticmethod
+    def get_qcm(qcm_id):
+        return QCMRepository.get_qcm_by_id(qcm_id)
 
-def generate_qcm(text: str, role: str, difficulty: str, num_questions: int = 5):
-    text = clean_text(text)
-    prompt = prompts.get_prompt(role, difficulty, text, num_questions)
-    output_text = model.generate_text(prompt)
-    questions = parse_qcm_output(output_text)
-    return questions
+    @staticmethod
+    def get_user_qcms(user_id):
+        return QCMRepository.get_all_by_user(user_id)
