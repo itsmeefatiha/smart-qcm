@@ -3,6 +3,7 @@ from src.extensions import db, migrate, jwt, cors, bcrypt, mail
 from src.auth import auth_bp
 from src.users import users_bp
 from src.documents import documents_bp
+from src.qcm import qcm_bp
 
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
@@ -20,5 +21,6 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(users_bp, url_prefix="/users")
     app.register_blueprint(documents_bp, url_prefix='/documents')
+    app.register_blueprint(qcm_bp, url_prefix="/qcm")
 
     return app
