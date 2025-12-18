@@ -1,7 +1,24 @@
 from datetime import datetime
 from src.extensions import db
 from .models import Attempt, AnswerStudent, SessionExamen
-from .qcm_provider_mock import get_correct_answers
+from src.IA.models import Question, Choice
+
+
+def get_correct_answers(qcm_id: int) -> dict:
+    """
+    Récupère les bonnes réponses d'un QCM depuis la DB.
+    Retour:
+    {
+        question_id: correct_choice_id
+    }
+    """
+    questions = Question.query.filter_by(qcm_id=qcm_id).all()
+    correct = {}
+    for q in questions:
+        correct_choice = Choice.query.filter_by(question_id=q.id, is_correct=True).first()
+        if correct_choice:
+            correct[q.id] = correct_choice.id
+    return correct
 
 
 def correct_exam(attempt_id: int, answers_payload: list):
@@ -28,7 +45,10 @@ def correct_exam(attempt_id: int, answers_payload: list):
             score += 1
 
     # 4️⃣ calcul note sur 20
-    attempt.score = (score / total) * 20
+    if total == 0:
+        attempt.score = 0
+    else:
+        attempt.score = (score / total) * 20
     attempt.finished_at = datetime.utcnow()
 
     db.session.commit()

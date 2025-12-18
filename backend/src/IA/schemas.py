@@ -7,7 +7,7 @@ class QCMRequest(BaseModel):
     document_id: int
     role: str            # "Prof" ou "Etudiant"
     difficulty: str      # "easy", "medium", "hard"
-    text: str            # texte extrait du PDF
+    # text removed, fetched from document
 
 class Choice(BaseModel):
     text: str

@@ -1,6 +1,6 @@
 # ia/service.py
-from ia import prompts, model
-from ia.schemas import Question, Choice
+from . import prompts, model
+from .schemas import Question, Choice
 import re
 
 def clean_text(text: str) -> str:
