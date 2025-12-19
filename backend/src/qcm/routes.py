@@ -30,6 +30,15 @@ def generate():
         "title": qcm.title
     }), 201
 
+@qcm_bp.route('/', methods=['GET'])
+@jwt_required()
+def list_qcms():
+    """Returns all QCMs for the current user"""
+    user_id = get_jwt_identity()
+    qcms = QCMService.get_user_qcms(user_id)
+
+    return jsonify([qcm.to_dict() for qcm in qcms]), 200
+
 @qcm_bp.route('/<int:qcm_id>', methods=['GET'])
 @jwt_required()
 def get_qcm(qcm_id):
@@ -37,7 +46,7 @@ def get_qcm(qcm_id):
     qcm = QCMService.get_exam_details(qcm_id)
     if not qcm:
         return jsonify({"error": "Exam not found"}), 404
-        
+
     return jsonify({
         "id": qcm.id,
         "title": qcm.title,

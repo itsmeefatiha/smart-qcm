@@ -5,10 +5,20 @@ import Layout from './components/Layout';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Activate from './pages/Activate';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import Upload from './pages/Upload';
 import Documents from './pages/Documents';
 import Profile from './pages/Profile';
+import GenerateQcm from './pages/GenerateQcm';
+import MyQcms from './pages/MyQcms';
+import CreateExamSession from './pages/CreateExamSession';
+import ActiveExams from './pages/ActiveExams';
+import TakeExam from './pages/TakeExam';
+import ExamResult from './pages/ExamResult';
+import ExamResults from './pages/ExamResults';
 
 function App() {
   return (
@@ -18,6 +28,9 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/activate/:token" element={<Activate />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
 
           <Route
             element={
@@ -30,7 +43,23 @@ function App() {
             <Route path="/upload" element={<Upload />} />
             <Route path="/documents" element={<Documents />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/generate-qcm" element={<GenerateQcm />} />
+            <Route path="/my-qcms" element={<MyQcms />} />
+            <Route path="/create-exam/:qcmId" element={<CreateExamSession />} />
+            <Route path="/active-exams" element={<ActiveExams />} />
+            <Route path="/exam-results/:sessionId" element={<ExamResults />} />
           </Route>
+
+          <Route path="/take-exam" element={
+            <ProtectedRoute>
+              <TakeExam />
+            </ProtectedRoute>
+          } />
+          <Route path="/exam-result" element={
+            <ProtectedRoute>
+              <ExamResult />
+            </ProtectedRoute>
+          } />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

@@ -23,7 +23,7 @@ const Navbar = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <span className="text-xl font-bold text-gray-900">DocManager</span>
+              <span className="text-xl font-bold text-gray-900">SmartQcm</span>
             </Link>
 
             <div className="hidden md:flex ml-10 space-x-8">
@@ -33,18 +33,32 @@ const Navbar = () => {
               >
                 Dashboard
               </Link>
-              <Link
-                to="/documents"
-                className="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition"
-              >
-                Documents
-              </Link>
-              <Link
-                to="/upload"
-                className="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition"
-              >
-                Upload
-              </Link>
+
+              {user?.role === 'professor' && (
+                <>
+                  <Link
+                    to="/documents"
+                    className="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition"
+                  >
+                    Documents
+                  </Link>
+                  <Link
+                    to="/my-qcms"
+                    className="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition"
+                  >
+                    My QCMs
+                  </Link>
+                </>
+              )}
+
+              {user?.role === 'student' && (
+                <Link
+                  to="/active-exams"
+                  className="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition"
+                >
+                  Exams
+                </Link>
+              )}
             </div>
           </div>
 
@@ -96,20 +110,36 @@ const Navbar = () => {
             >
               Dashboard
             </Link>
-            <Link
-              to="/documents"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg"
-            >
-              Documents
-            </Link>
-            <Link
-              to="/upload"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg"
-            >
-              Upload
-            </Link>
+
+            {user?.role === 'professor' && (
+              <>
+                <Link
+                  to="/documents"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg"
+                >
+                  Documents
+                </Link>
+                <Link
+                  to="/my-qcms"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg"
+                >
+                  My QCMs
+                </Link>
+              </>
+            )}
+
+            {user?.role === 'student' && (
+              <Link
+                to="/active-exams"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg"
+              >
+                Exams
+              </Link>
+            )}
+
             <Link
               to="/profile"
               onClick={() => setMobileMenuOpen(false)}
