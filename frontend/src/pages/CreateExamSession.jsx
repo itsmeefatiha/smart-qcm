@@ -6,12 +6,14 @@ const CreateExamSession = () => {
   const { qcmId } = useParams();
   const navigate = useNavigate();
   const [qcm, setQcm] = useState(null);
+  
   const [formData, setFormData] = useState({
+    description: '',
     start_time: '',
-    end_time: '',
     duration_minutes: 60,
     total_grade: 20,
   });
+  
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -26,14 +28,17 @@ const CreateExamSession = () => {
       const response = await qcmAPI.getById(qcmId);
       setQcm(response.data);
 
+      // Initialize start_time to current local time for the input
       const now = new Date();
-      const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
+      // Trick to get local ISO string for datetime-local input
+      const localIsoString = new Date(now.getTime() - (now.getTimezoneOffset() * 60000))
+        .toISOString()
+        .slice(0, 16);
 
-      setFormData({
-        ...formData,
-        start_time: now.toISOString().slice(0, 16),
-        end_time: oneHourLater.toISOString().slice(0, 16),
-      });
+      setFormData(prev => ({
+        ...prev,
+        start_time: localIsoString,
+      }));
     } catch (err) {
       setError('Failed to load QCM');
     } finally {
@@ -54,16 +59,18 @@ const CreateExamSession = () => {
     setError('');
 
     try {
+      // UPDATED PAYLOAD: Sending description, ignoring end_time
       const response = await examAPI.create({
         qcm_id: parseInt(qcmId),
-        start_time: new Date(formData.start_time).toISOString(),
-        end_time: new Date(formData.end_time).toISOString(),
+        description: formData.description,
+        start_time: new Date(formData.start_time).toISOString(), // Convert to UTC ISO for backend
         duration_minutes: parseInt(formData.duration_minutes),
         total_grade: parseInt(formData.total_grade),
       });
 
       setSessionCode(response.data.code);
     } catch (err) {
+      console.error(err);
       setError(err.response?.data?.error || 'Failed to create exam session');
       setSubmitting(false);
     }
@@ -77,6 +84,7 @@ const CreateExamSession = () => {
     );
   }
 
+  // --- SUCCESS VIEW (Displaying Code) ---
   if (sessionCode) {
     return (
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -115,7 +123,7 @@ const CreateExamSession = () => {
               Back to QCMs
             </button>
             <button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/professor-dashboard')} // Assuming you have a dashboard
               className="flex-1 bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-6 rounded-lg transition"
             >
               Go to Dashboard
@@ -126,6 +134,7 @@ const CreateExamSession = () => {
     );
   }
 
+  // --- FORM VIEW ---
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-8">
@@ -134,10 +143,10 @@ const CreateExamSession = () => {
         {qcm && (
           <div className="mt-4 bg-blue-50 rounded-lg p-4">
             <p className="text-sm text-gray-700">
-              <span className="font-semibold">QCM:</span> {qcm.title}
+              <span className="font-semibold">Selected QCM:</span> {qcm.title}
             </p>
             <p className="text-sm text-gray-700">
-              <span className="font-semibold">Questions:</span> {qcm.questions?.length || 0}
+              <span className="font-semibold">Questions:</span> {qcm.question_count || qcm.questions?.length || 0}
             </p>
           </div>
         )}
@@ -151,57 +160,60 @@ const CreateExamSession = () => {
             </div>
           )}
 
+          {/* NEW: Description Field */}
           <div>
-            <label htmlFor="start_time" className="block text-sm font-medium text-gray-700 mb-2">
-              Start Time *
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+              Exam Description (Optional)
             </label>
-            <input
-              id="start_time"
-              name="start_time"
-              type="datetime-local"
-              required
-              value={formData.start_time}
+            <textarea
+              id="description"
+              name="description"
+              rows="3"
+              value={formData.description}
               onChange={handleChange}
+              placeholder="e.g. Final exam for the Java module. Good luck!"
               className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
             />
           </div>
 
-          <div>
-            <label htmlFor="end_time" className="block text-sm font-medium text-gray-700 mb-2">
-              End Time *
-            </label>
-            <input
-              id="end_time"
-              name="end_time"
-              type="datetime-local"
-              required
-              value={formData.end_time}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
-            />
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label htmlFor="start_time" className="block text-sm font-medium text-gray-700 mb-2">
+                Start Time *
+              </label>
+              <input
+                id="start_time"
+                name="start_time"
+                type="datetime-local"
+                required
+                value={formData.start_time}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
+              />
+              <p className="mt-1 text-xs text-gray-500">Local time</p>
+            </div>
 
-          <div>
-            <label htmlFor="duration_minutes" className="block text-sm font-medium text-gray-700 mb-2">
-              Exam Duration (minutes) *
-            </label>
-            <input
-              id="duration_minutes"
-              name="duration_minutes"
-              type="number"
-              min="1"
-              max="300"
-              required
-              value={formData.duration_minutes}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
-            />
-            <p className="mt-2 text-sm text-gray-500">How long students have to complete the exam</p>
+            <div>
+              <label htmlFor="duration_minutes" className="block text-sm font-medium text-gray-700 mb-2">
+                Duration (minutes) *
+              </label>
+              <input
+                id="duration_minutes"
+                name="duration_minutes"
+                type="number"
+                min="1"
+                max="300"
+                required
+                value={formData.duration_minutes}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
+              />
+            </div>
           </div>
 
           <div>
             <label htmlFor="total_grade" className="block text-sm font-medium text-gray-700 mb-2">
-              Total Grade *
+              Total Grade Score *
             </label>
             <input
               id="total_grade"
@@ -214,10 +226,10 @@ const CreateExamSession = () => {
               onChange={handleChange}
               className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
             />
-            <p className="mt-2 text-sm text-gray-500">Maximum score for this exam (e.g., 20)</p>
+            <p className="mt-2 text-sm text-gray-500">Maximum score for this exam (e.g., 20 or 100)</p>
           </div>
 
-          <div className="flex gap-4">
+          <div className="flex gap-4 pt-4">
             <button
               type="button"
               onClick={() => navigate('/my-qcms')}
@@ -230,7 +242,7 @@ const CreateExamSession = () => {
               disabled={submitting}
               className="flex-1 bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {submitting ? 'Creating...' : 'Create Session'}
+              {submitting ? 'Creating Session...' : 'Create Session'}
             </button>
           </div>
         </form>
