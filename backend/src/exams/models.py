@@ -9,7 +9,7 @@ class ExamSession(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     code = db.Column(db.String(10), unique=True, nullable=False) # e.g. "X7Y-22A"
-    
+    description = db.Column(db.Text, nullable=True)
     start_time = db.Column(db.DateTime, nullable=False) # When the exam opens
     end_time = db.Column(db.DateTime, nullable=False)   # When the exam closes
     duration_minutes = db.Column(db.Integer, nullable=False) # Time allowed (e.g. 60 mins)
@@ -23,7 +23,7 @@ class ExamSession(db.Model):
     qcm = db.relationship('QCM', backref='sessions', lazy=True)
     professor = db.relationship('User', backref='exam_sessions', lazy=True)
     
-    attempts = db.relationship('StudentAttempt', backref='session', lazy=True)
+    attempts = db.relationship('StudentAttempt', backref='session', lazy=True, cascade="all, delete-orphan")
 
 class StudentAttempt(db.Model):
     """
@@ -32,7 +32,7 @@ class StudentAttempt(db.Model):
     __tablename__ = 'student_attempts'
 
     id = db.Column(db.Integer, primary_key=True)
-    started_at = db.Column(db.DateTime, default=datetime.utcnow)
+    started_at = db.Column(db.DateTime, default=datetime.now)
     finished_at = db.Column(db.DateTime, nullable=True)
     
     score = db.Column(db.Float, default=0.0) # The final calculated grade

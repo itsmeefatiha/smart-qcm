@@ -12,6 +12,7 @@ class QCM(db.Model):
     # Relationships
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     document_id = db.Column(db.Integer, db.ForeignKey('documents.id'), nullable=False)
+    document = db.relationship('Document', backref='qcms', lazy=True)
     
     # One QCM has many Questions
     questions = db.relationship('Question', backref='qcm', lazy=True, cascade="all, delete-orphan")
@@ -22,7 +23,8 @@ class QCM(db.Model):
             "title": self.title,
             "level": self.level,
             "created_at": self.created_at.isoformat(),
-            "question_count": len(self.questions)
+            "question_count": len(self.questions),
+            "questions": [q.to_dict() for q in self.questions] 
         }
 
 class Question(db.Model):

@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 from src.extensions import db
 from .models import ExamSession, StudentAttempt, StudentAnswer
 import random
@@ -7,23 +7,34 @@ import string
 class ExamRepository:
     @staticmethod
     def generate_code():
-        """Generates a random 6-character code like 'A7X92Z'"""
         return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-    
+
     @staticmethod
     def create_session(data):
+        # We now accept 'end_time' which is calculated by the Service, not the User
         session = ExamSession(
             code=ExamRepository.generate_code(),
+            description=data.get('description', ''),
             start_time=data['start_time'],
             end_time=data['end_time'],
             duration_minutes=data['duration_minutes'],
-            total_grade=data['total_grade'], # <--- Added this
+            total_grade=data['total_grade'],
             qcm_id=data['qcm_id'],
             professor_id=data['professor_id']
         )
         db.session.add(session)
         db.session.commit()
         return session
+
+    @staticmethod
+    def delete_session(session):
+        db.session.delete(session)
+        db.session.commit()
+
+    @staticmethod
+    def get_all_by_professor(professor_id):
+        """Returns ALL exams (active & finished) for the professor"""
+        return ExamSession.query.filter_by(professor_id=professor_id).order_by(ExamSession.start_time.desc()).all()
 
     @staticmethod
     def get_session_by_id(session_id):
@@ -52,7 +63,7 @@ class ExamRepository:
         
         # 2. Update Attempt status
         attempt.score = total_score
-        attempt.finished_at = datetime.utcnow()
+        attempt.finished_at = datetime.now()
         
         db.session.commit()
 

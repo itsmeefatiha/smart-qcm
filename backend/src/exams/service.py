@@ -1,33 +1,59 @@
-from datetime import datetime
 from .repository import ExamRepository
 from .models import ExamSession, StudentAnswer
 from src.qcm.repository import QCMRepository 
-from src.qcm.models import Question # Needed to check correct answers
+from src.qcm.models import Question
+from datetime import datetime, timedelta
 
 class ExamService:
     @staticmethod
     def create_exam_session(professor_id, data):
-        # 1. Validation: Ensure QCM exists
         qcm_id = data.get('qcm_id')
         qcm = QCMRepository.get_by_id(qcm_id)
         if not qcm:
             return None, "QCM not found"
             
-        # 2. Validation: Ensure Duration is possible
-        question_count = len(qcm.questions)
-        if question_count == 0:
-            return None, "Cannot create an exam for a QCM with 0 questions."
+        # --- NEW: Date Calculation Logic ---
+        try:
+            # 1. Parse Start Time (Assuming ISO format string from Frontend)
+            # Example: "2025-12-20T10:00"
+            start_dt = datetime.fromisoformat(data['start_time'])
             
-        duration_minutes = data.get('duration_minutes', 60)
-        
-        # Calculate strict minimum (e.g., 10 seconds per question)
-        min_minutes = (question_count * 10) / 60 
-        if duration_minutes < min_minutes:
-            return None, f"Duration is too short! Need at least {int(min_minutes)+1} minutes for {question_count} questions."
-        # 1. Capture the Total Grade (default to 20 if not sent)
-        data['total_grade'] = data.get('total_grade', 20)     
+            # 2. Get Duration
+            duration = int(data.get('duration_minutes', 60))
+            
+            # 3. Calculate End Time automatically
+            end_dt = start_dt + timedelta(minutes=duration)
+            
+            # 4. Update data dict for repository
+            data['start_time'] = start_dt
+            data['end_time'] = end_dt # Pass the calculated object
+            data['duration_minutes'] = duration
+            
+        except ValueError:
+            return None, "Invalid Date Format. Use ISO format (YYYY-MM-DDTHH:MM)"
+
+        data['total_grade'] = data.get('total_grade', 20)
         data['professor_id'] = professor_id
+        
         return ExamRepository.create_session(data), None
+
+    @staticmethod
+    def delete_exam_session(professor_id, session_id):
+        session = ExamRepository.get_session_by_id(session_id)
+        if not session:
+            return None, "Exam session not found"
+            
+        if session.professor_id != professor_id:
+            return None, "Unauthorized: You can only delete your own exams."
+            
+        ExamRepository.delete_session(session)
+        return "Exam deleted successfully", None
+
+    @staticmethod
+    def get_professor_exams(professor_id):
+        """Get list of ALL exams created by this professor"""
+        sessions = ExamRepository.get_all_by_professor(professor_id)
+        return sessions
 
     @staticmethod
     def join_exam(student_id, code):
@@ -35,43 +61,59 @@ class ExamService:
         if not session:
             return None, "Invalid or inactive session code."
 
-        now = datetime.utcnow()
+        now = datetime.now()
         if now < session.start_time or now > session.end_time:
             return None, "Exam is not currently open."
 
-        # --- ONE ATTEMPT RULE ---
-        existing_attempt = ExamRepository.get_student_attempt(student_id, session.id)
-        
-        attempt = None
-        if existing_attempt:
-            if existing_attempt.finished_at is not None:
-                return None, "You have already submitted this exam."
-            attempt = existing_attempt # Resume
-        else:
+        # --- GET OR CREATE ATTEMPT ---
+        attempt = ExamRepository.get_student_attempt(student_id, session.id)
+        if not attempt:
+            # First time joining: Timer starts NOW
             attempt = ExamRepository.create_attempt(student_id, session.id)
-
-        # --- DYNAMIC TIME CALCULATION ---
-        # We calculate this NOW and send it to the frontend
-        total_seconds = session.duration_minutes * 60
-        question_count = len(session.qcm.questions)
         
-        # Avoid division by zero
+        if attempt.finished_at:
+             return None, "You have already submitted this exam."
+
+        # --- THE FIX: CALCULATE CURRENT QUESTION INDEX ---
+        
+        # 1. Calculate time per question
+        question_count = len(session.qcm.questions)
+        total_seconds = session.duration_minutes * 60
         seconds_per_question = int(total_seconds / question_count) if question_count > 0 else 0
 
-        # We return the attempt + the calculated timing for the UI
+        # 2. Calculate how much time has passed since they STARTED
+        # (This timer kept running even while they were disconnected!)
+        elapsed_time = (now - attempt.started_at).total_seconds()
+        
+        # 3. Determine which question they should be on
+        # Example: 300 seconds passed / 60 sec per question = Index 5 (Question 6)
+        current_index = int(elapsed_time // seconds_per_question)
+        
+        # 4. Calculate remaining time for the specific question they landed on
+        # Example: 320 seconds passed. 320 % 60 = 20 seconds used. 60 - 20 = 40 seconds left.
+        time_left_in_current_question = seconds_per_question - (elapsed_time % seconds_per_question)
+
+        # 5. Check if they ran out of time completely
+        if current_index >= question_count:
+            # Auto-submit if time is up
+            # (You might want to mark it finished in DB here)
+            return None, "Time is up! The exam duration has passed."
+
         return {
-            "attempt": attempt,
-            "qcm": session.qcm.to_dict(),
-            "config": {
+            "attempt_id": attempt.id, # Ensure this matches your route expectation
+            "qcm": session.qcm.to_dict(), 
+            "exam_config": {
                 "total_duration": session.duration_minutes,
-                "seconds_per_question": seconds_per_question
+                "seconds_per_question": seconds_per_question,
+                "start_at_index": current_index,          # <--- SEND THIS TO FRONTEND
+                "initial_question_time": time_left_in_current_question # <--- AND THIS
             }
         }, None
     
     @staticmethod
     def get_active_sessions_for_student(user_branch=None):
         # Optional: You could filter by the student's branch if you wanted
-        now = datetime.utcnow()
+        now = datetime.now()
         
         # Fetch sessions where Now is between Start and End
         active_sessions = ExamSession.query.filter(
