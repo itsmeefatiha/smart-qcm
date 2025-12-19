@@ -4,6 +4,7 @@ from src.auth import auth_bp
 from src.users import users_bp
 from src.documents import documents_bp
 from src.qcm import qcm_bp
+from src.exams import exams_bp
 
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
@@ -22,5 +23,6 @@ def create_app():
     app.register_blueprint(users_bp, url_prefix="/users")
     app.register_blueprint(documents_bp, url_prefix='/documents')
     app.register_blueprint(qcm_bp, url_prefix="/qcm")
+    app.register_blueprint(exams_bp, url_prefix="/exams")
 
     return app

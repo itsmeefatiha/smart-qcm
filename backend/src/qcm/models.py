@@ -35,6 +35,16 @@ class Question(db.Model):
     choices = db.Column(db.JSON, nullable=False) 
     
     qcm_id = db.Column(db.Integer, db.ForeignKey('qcms.id'), nullable=False)
+    duration = db.Column(db.Integer, default=30) # Duration in seconds
+
+    def get_correct_choice_index(self):
+        """Helper to find which index (0, 1, 2, 3) is the correct one"""
+        if not self.choices:
+            return -1
+        for index, choice in enumerate(self.choices):
+            if choice.get('is_correct'):
+                return index
+        return -1
 
     def to_dict(self):
         return {

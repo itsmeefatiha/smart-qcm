@@ -1,5 +1,6 @@
 import os
 import json
+import random
 import google.generativeai as genai
 
 class AIGenerator:
@@ -19,10 +20,15 @@ class AIGenerator:
             }
         )
 
+        # I updated the prompt slightly to explicitly ask for randomization too
         prompt = f"""
         You are a university professor. Generate {num_questions} multiple-choice questions (QCM) based on the text below.
         Difficulty: {level}
         Language: French.
+
+        IMPORTANT: 
+        1. Randomize the position of the correct answer for each question. Do not always put it in the same spot.
+        2. Ensure distractors (wrong answers) are plausible.
 
         OUTPUT SCHEMA (JSON Array):
         [
@@ -40,11 +46,18 @@ class AIGenerator:
         SOURCE TEXT:
         {text_content[:50000]} 
         """
-        # Note: We limit text to 50k chars to stay safe, though Gemini can handle more.
 
         try:
             response = model.generate_content(prompt)
-            # Gemini returns a string, we parse it into a real Python list
-            return json.loads(response.text), None
+            questions_data = json.loads(response.text)
+
+            # --- THE MAGIC FIX: Python Side Shuffling ---
+            # This guarantees the correct answer is always at a random position
+            # regardless of what the AI did.
+            for q in questions_data:
+                random.shuffle(q['choices'])
+            
+            return questions_data, None
+
         except Exception as e:
             return None, f"AI Error: {str(e)}"
