@@ -38,6 +38,9 @@ export const authAPI = {
   register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
   logout: () => api.post('/auth/logout'),
+  confirmEmail: (token) => api.get(`/auth/confirm/${token}`),
+  forgotPassword: (data) => api.post('/auth/forgot-password', data),
+  resetPassword: (token, data) => api.post(`/auth/reset-password/${token}`, data),
 };
 
 export const userAPI = {
@@ -53,6 +56,20 @@ export const documentAPI = {
     });
   },
   list: () => api.get('/documents/'),
+};
+
+export const qcmAPI = {
+  generate: (data) => api.post('/qcm/generate', data),
+  list: () => api.get('/qcm/'),
+  getById: (qcmId) => api.get(`/qcm/${qcmId}`),
+};
+
+export const examAPI = {
+  create: (data) => api.post('/exams/create', data),
+  join: (data) => api.post('/exams/join', data),
+  submit: (data) => api.post('/exams/submit', data),
+  listActive: () => api.get('/exams/active'),
+  getResults: (sessionId) => api.get(`/exams/${sessionId}/results`),
 };
 
 export default api;

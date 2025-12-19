@@ -32,7 +32,7 @@ const Register = () => {
 
     if (result.success) {
       navigate('/login', {
-        state: { message: 'Registration successful! Please sign in.' }
+        state: { message: 'Registration successful! Please check your email to activate your account.' }
       });
     } else {
       setError(result.error);
@@ -45,7 +45,7 @@ const Register = () => {
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Create Account</h1>
-          <p className="text-gray-600">Join our document management platform</p>
+          <p className="text-gray-600">Join our AI-powered exam platform</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-8">

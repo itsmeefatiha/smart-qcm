@@ -41,3 +41,7 @@ class QCMService:
     @staticmethod
     def get_exam_details(qcm_id):
         return QCMRepository.get_by_id(qcm_id)
+
+    @staticmethod
+    def get_user_qcms(user_id):
+        return QCMRepository.get_by_user(user_id)
