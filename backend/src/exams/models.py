@@ -13,7 +13,7 @@ class ExamSession(db.Model):
     start_time = db.Column(db.DateTime, nullable=False) # When the exam opens
     end_time = db.Column(db.DateTime, nullable=False)   # When the exam closes
     duration_minutes = db.Column(db.Integer, nullable=False) # Time allowed (e.g. 60 mins)
-    
+    total_grade = db.Column(db.Integer, default=20, nullable=False)
     is_active = db.Column(db.Boolean, default=True)
 
     # Relationships
