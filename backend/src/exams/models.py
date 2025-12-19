@@ -19,6 +19,9 @@ class ExamSession(db.Model):
     # Relationships
     qcm_id = db.Column(db.Integer, db.ForeignKey('qcms.id'), nullable=False)
     professor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
+    qcm = db.relationship('QCM', backref='sessions', lazy=True)
+    professor = db.relationship('User', backref='exam_sessions', lazy=True)
     
     attempts = db.relationship('StudentAttempt', backref='session', lazy=True)
 
