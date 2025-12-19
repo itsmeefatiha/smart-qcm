@@ -24,8 +24,8 @@ class ExamService:
         min_minutes = (question_count * 10) / 60 
         if duration_minutes < min_minutes:
             return None, f"Duration is too short! Need at least {int(min_minutes)+1} minutes for {question_count} questions."
-
-        # 3. Create Session
+        # 1. Capture the Total Grade (default to 20 if not sent)
+        data['total_grade'] = data.get('total_grade', 20)     
         data['professor_id'] = professor_id
         return ExamRepository.create_session(data), None
 
@@ -84,9 +84,6 @@ class ExamService:
 
     @staticmethod
     def submit_exam(attempt_id, student_answers_payload):
-        """
-        payload example: [{"question_id": 12, "selected_index": 1}, ...]
-        """
         attempt = ExamRepository.get_attempt(attempt_id)
         if not attempt:
             return None, "Attempt not found"
@@ -94,30 +91,33 @@ class ExamService:
         if attempt.finished_at:
             return None, "Exam already submitted."
 
-        # --- SCORING ENGINE ---
-        total_score = 0
-        answers_to_save = []
+        # --- DYNAMIC SCORING ENGINE ---
         
-        # We need to fetch the QCM to know how many questions existed
-        # But for MVP, we iterate the student's answers
+        # 1. Get total questions count
+        total_questions = len(attempt.session.qcm.questions)
+        if total_questions == 0:
+            return None, "Error: Exam has 0 questions."
+
+        # 2. Calculate weight per question (e.g., 20 / 10 = 2 points each)
+        points_per_question = attempt.session.total_grade / total_questions
+
+        correct_count = 0
+        answers_to_save = []
         
         for ans_data in student_answers_payload:
             q_id = ans_data.get('question_id')
             idx = ans_data.get('selected_index')
             
-            # 1. Fetch the real question to check truth
             question = Question.query.get(q_id)
-            if not question:
+            if not question: 
                 continue 
 
-            # 2. Check correctness
             correct_idx = question.get_correct_choice_index()
             is_correct = (idx == correct_idx)
             
             if is_correct:
-                total_score += 1 # Or fetch points per question if you have that
+                correct_count += 1
             
-            # 3. Prepare record
             new_ans = StudentAnswer(
                 question_id=q_id,
                 attempt_id=attempt.id,
@@ -126,13 +126,45 @@ class ExamService:
             )
             answers_to_save.append(new_ans)
 
-        # Calculate percentage (optional)
-        # qcm_total = len(attempt.session.qcm.questions)
-        # final_grade = (total_score / qcm_total) * 20
+        # 3. Final Score Calculation
+        final_score = correct_count * points_per_question
         
-        ExamRepository.save_answers_and_score(attempt, answers_to_save, total_score)
+        # Save everything
+        ExamRepository.save_answers_and_score(attempt, answers_to_save, final_score)
         
         return {
-            "score": total_score,
+            "score": final_score,
+            "total_grade": attempt.session.total_grade, # e.g., "16" (out of 20)
+            "correct_answers": correct_count,
             "status": "Submitted"
         }, None
+    
+
+    @staticmethod
+    def get_exam_results(professor_id, session_id):
+        session = ExamRepository.get_session_by_id(session_id)
+        
+        if not session:
+            return None, "Session not found"
+            
+        if session.professor_id != professor_id:
+            return None, "Unauthorized: You did not create this exam."
+
+        results = []
+        for attempt in session.attempts:
+            # Skip students who joined but haven't finished
+            status = "Finished" if attempt.finished_at else "In Progress"
+            
+            # Fetch student name
+            student_name = f"{attempt.user.first_name} {attempt.user.last_name}"
+            
+            results.append({
+                "student_id": attempt.user_id,
+                "student_name": student_name,
+                "score": attempt.score,
+                "total": session.total_grade,
+                "status": status,
+                "submitted_at": attempt.finished_at.isoformat() if attempt.finished_at else None
+            })
+            
+        return results, None

@@ -78,3 +78,18 @@ def list_active_exams():
         })
         
     return jsonify(output), 200
+
+@exams_bp.route('/<int:session_id>/results', methods=['GET'])
+@jwt_required()
+def view_results(session_id):
+    """
+    Professor views all grades for a specific exam session.
+    """
+    professor_id = get_jwt_identity()
+    
+    results, error = ExamService.get_exam_results(professor_id, session_id)
+    
+    if error:
+        return jsonify({"error": error}), 403
+        
+    return jsonify(results), 200

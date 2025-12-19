@@ -9,7 +9,7 @@ class ExamRepository:
     def generate_code():
         """Generates a random 6-character code like 'A7X92Z'"""
         return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-
+    
     @staticmethod
     def create_session(data):
         session = ExamSession(
@@ -17,12 +17,17 @@ class ExamRepository:
             start_time=data['start_time'],
             end_time=data['end_time'],
             duration_minutes=data['duration_minutes'],
+            total_grade=data['total_grade'], # <--- Added this
             qcm_id=data['qcm_id'],
             professor_id=data['professor_id']
         )
         db.session.add(session)
         db.session.commit()
         return session
+
+    @staticmethod
+    def get_session_by_id(session_id):
+        return ExamSession.query.get(session_id)
 
     @staticmethod
     def get_session_by_code(code):
