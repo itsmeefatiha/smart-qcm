@@ -33,7 +33,7 @@ class RegisterSchema(Schema):
     last_name = fields.String(required=True, validate=validate.Length(min=2, max=50))
     
     # Optional: Validate role is one of the allowed values
-    role = fields.String(validate=validate.OneOf(["student", "professor", "admin"]))
+    role = fields.String(validate=validate.OneOf(["student", "professor", "admin", "manager"]))
 
 # --- Login Schema ---
 class LoginSchema(Schema):
