@@ -34,6 +34,7 @@ class RegisterSchema(Schema):
     
     # Optional: Validate role is one of the allowed values
     role = fields.String(validate=validate.OneOf(["student", "professor", "admin", "manager"]))
+    branch_id = fields.Integer(required=False, allow_none=True)
 
 # --- Login Schema ---
 class LoginSchema(Schema):

@@ -1,4 +1,4 @@
-from flask import request, jsonify, Blueprint
+from flask import request, jsonify, Blueprint, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from .service import QCMService
 from . import qcm_bp
@@ -52,3 +52,60 @@ def get_qcm(qcm_id):
         "title": qcm.title,
         "questions": [q.to_dict() for q in qcm.questions]
     }), 200
+
+# --- NEW: Delete QCM Route ---
+@qcm_bp.route('/<int:qcm_id>', methods=['DELETE'])
+@jwt_required()
+def delete_qcm(qcm_id):
+    """Deletes a QCM and all its questions"""
+    user_id = get_jwt_identity()
+    message, status = QCMService.delete_exam(user_id, qcm_id)
+    
+    if status != 200:
+        return jsonify({"error": message}), status
+        
+    return jsonify({"message": message}), 200
+
+# --- NEW: Edit Question Route ---
+@qcm_bp.route('/question/<int:question_id>', methods=['PUT'])
+@jwt_required()
+def edit_question(question_id):
+    """
+    Updates a single question's text and choices.
+    Payload: {
+        "text": "New question text?",
+        "choices": [ {"text": "A", "is_correct": true}, ... ]
+    }
+    """
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    
+    result, status = QCMService.update_question(user_id, question_id, data)
+    
+    if status != 200:
+        return jsonify({"error": result}), status
+        
+    return jsonify({
+        "message": "Question updated successfully",
+        "question": result.to_dict()
+    }), 200
+
+@qcm_bp.route('/<int:qcm_id>/download', methods=['GET'])
+@jwt_required()
+def download_qcm_pdf(qcm_id):
+    """
+    Generates and downloads the PDF for a specific QCM.
+    """
+    user_id = get_jwt_identity()
+    
+    pdf_buffer, error = QCMService.download_pdf(user_id, qcm_id)
+    
+    if error:
+        return jsonify({"error": error}), 404
+        
+    return send_file(
+        pdf_buffer,
+        as_attachment=True,
+        download_name=f"exam_{qcm_id}.pdf",
+        mimetype='application/pdf'
+    )

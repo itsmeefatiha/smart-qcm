@@ -3,8 +3,8 @@ from werkzeug.utils import secure_filename
 from .extractor import extract_text_from_file, allowed_file
 from .repository import DocumentRepository
 from .models import Document
+from src.users.models import User, UserRole # Need this to check roles
 
-# Define where files go. In production, use an ENV variable.
 UPLOAD_DIR = os.path.join(os.getcwd(), 'uploads')
 if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR)
@@ -14,33 +14,33 @@ class DocumentService:
     def upload_document(file, data, user_id):
         # 1. Validation
         if not file or not allowed_file(file.filename):
-            return None, "Invalid file format. Allowed: PDF, DOCX, TXT"
-        
+            return None, "Invalid file format."
+
+        # CHECK BRANCH ID
+        branch_id = data.get('branch_id')
+        if not branch_id:
+            return None, "Branch ID is required."
+
         # 2. Secure Save
         filename = secure_filename(file.filename)
-        # Add timestamp to filename to prevent duplicates
         save_name = f"{user_id}_{filename}" 
         file_path = os.path.join(UPLOAD_DIR, save_name)
         
         try:
             file.save(file_path)
             
-            # 3. INTELLIGENT EXTRACTION (The Core Value)
-            # We extract text NOW so the AI is fast LATER.
-            extracted_text = extract_text_from_file(file_path)
+            # 3. Text Extraction
+            extracted_text = extract_text_from_file(file_path) or ""
             
-            if not extracted_text:
-                return None, "Could not extract text. File might be empty or a scanned image."
-
-            # 4. Create Record
+            # 4. Create Record with Foreign Key
             new_doc = Document(
                 filename=filename,
                 file_path=file_path,
                 module=data.get('module', 'General'),
-                branch=data.get('branch', ''),
                 year=data.get('year', ''),
                 extracted_text=extracted_text,
-                user_id=user_id
+                user_id=user_id,
+                branch_id=branch_id # <--- Saving the ID
             )
             
             return DocumentRepository.create(new_doc), None
@@ -49,5 +49,22 @@ class DocumentService:
             return None, str(e)
 
     @staticmethod
-    def get_user_documents(user_id):
-        return DocumentRepository.get_all_by_user(user_id)
+    def get_documents_for_user(user_id):
+        """
+        Smart Listing Logic:
+        - Students -> See documents for their BRANCH.
+        - Professors -> See documents THEY uploaded.
+        """
+        user = User.query.get(user_id)
+        if not user:
+            return []
+
+        if user.role == UserRole.STUDENT:
+            # SAFETY CHECK: If student has no branch, they see nothing
+            if not user.branch_id:
+                return []
+            return DocumentRepository.get_by_branch(user.branch_id)
+        
+        else:
+            # Professors/Managers see what they created
+            return DocumentRepository.get_by_uploader(user_id)

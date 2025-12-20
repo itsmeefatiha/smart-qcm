@@ -37,3 +37,26 @@ class QCMRepository:
     @staticmethod
     def get_by_user(user_id):
         return QCM.query.filter_by(user_id=user_id).order_by(QCM.created_at.desc()).all()
+    
+    @staticmethod
+    def delete_qcm(qcm):
+        """Deletes QCM and all associated questions (via cascade)"""
+        db.session.delete(qcm)
+        db.session.commit()
+
+    # --- NEW: Update Question ---
+    @staticmethod
+    def update_question(question_id, new_text, new_choices):
+        """Updates the text and choices of a single question"""
+        question = Question.query.get(question_id)
+        if question:
+            question.text = new_text
+            question.choices = new_choices # SQLAlchemy handles JSON update
+            db.session.commit()
+            return question
+        return None
+        
+    # --- NEW: Get Question by ID ---
+    @staticmethod
+    def get_question_by_id(question_id):
+        return Question.query.get(question_id)

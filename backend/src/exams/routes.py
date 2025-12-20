@@ -123,3 +123,18 @@ def view_results(session_id):
     results, error = ExamService.get_exam_results(professor_id, session_id)
     if error: return jsonify({"error": error}), 403
     return jsonify(results), 200
+
+@exams_bp.route('/<int:session_id>/live', methods=['GET'])
+@jwt_required()
+def track_live_exam(session_id):
+    """
+    Returns a list of students currently taking the exam.
+    """
+    professor_id = get_jwt_identity()
+    
+    data, error = ExamService.get_live_tracking(professor_id, session_id)
+    
+    if error:
+        return jsonify({"error": error}), 403
+        
+    return jsonify(data), 200

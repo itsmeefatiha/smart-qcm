@@ -5,6 +5,9 @@ from src.users import users_bp
 from src.documents import documents_bp
 from src.qcm import qcm_bp
 from src.exams import exams_bp
+from src.stats import stats_bp
+from src.school import school_bp
+from src.commands import create_admin
 
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
@@ -24,5 +27,9 @@ def create_app():
     app.register_blueprint(documents_bp, url_prefix='/documents')
     app.register_blueprint(qcm_bp, url_prefix="/qcm")
     app.register_blueprint(exams_bp, url_prefix="/exams")
+    app.register_blueprint(stats_bp, url_prefix="/stats")
+    app.register_blueprint(school_bp, url_prefix="/school")
+
+    app.cli.add_command(create_admin)
 
     return app

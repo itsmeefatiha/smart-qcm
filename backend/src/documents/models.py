@@ -6,34 +6,40 @@ class Document(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     
-    # Metadata for Organization
+    # Metadata
     filename = db.Column(db.String(255), nullable=False)
     module = db.Column(db.String(100), nullable=False)    # e.g., "Analyse de Données"
-    branch = db.Column(db.String(100), nullable=True)     # e.g., "Génie Logiciel"
     year = db.Column(db.String(20), nullable=True)        # e.g., "2024-2025"
     
-    # Storage
-    file_path = db.Column(db.String(500), nullable=False) # Physical path on disk
+    # --- CHANGE: Link to Branch Table ---
+    # Was: branch = db.Column(db.String(100)...)
+    branch_id = db.Column(db.Integer, db.ForeignKey('branches.id'), nullable=False)
     
-    # THE AI GOLD MINE: We store the full text here
-    # Postgres TEXT type can hold ~1GB of text, plenty for large courses.
+    # Storage
+    file_path = db.Column(db.String(500), nullable=False)
     extracted_text = db.Column(db.Text, nullable=True)
     
     # Archival & History
     upload_date = db.Column(db.DateTime, default=datetime.utcnow)
     is_archived = db.Column(db.Boolean, default=False)
     
-    # Foreign Key (Who uploaded it?)
+    # Who uploaded it? (Professor)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
+    # Relationships
+    # Access the branch name via self.branch.name
+    # (The backref 'documents' was already defined in Branch model, so we don't strictly need to redefine it here, 
+    # but defining the relationship here makes access easier if backref wasn't explicit)
+    # branch = db.relationship('Branch', backref='documents') # optional if backref exists
 
     def to_dict(self):
         return {
             "id": self.id,
             "filename": self.filename,
             "module": self.module,
-            "branch": self.branch,
+            # Fetch name dynamically from the relationship
+            "branch": self.branch.name if self.branch else "Unknown",
             "year": self.year,
             "upload_date": self.upload_date.isoformat(),
-            "has_text": bool(self.extracted_text), # Just a flag for UI
             "preview": self.extracted_text[:100] + "..." if self.extracted_text else ""
         }
