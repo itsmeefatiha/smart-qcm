@@ -1,3 +1,4 @@
+from src.users.models import UserRole, User
 from .repository import ExamRepository
 from .models import ExamSession, StudentAnswer
 from src.qcm.repository import QCMRepository 
@@ -11,7 +12,9 @@ class ExamService:
         qcm = QCMRepository.get_by_id(qcm_id)
         if not qcm:
             return None, "QCM not found"
-            
+        
+        if 'branch_id' not in data:
+            return None, "Branch ID is required (e.g., Genie Logiciel, Big Data)."
         # --- NEW: Date Calculation Logic ---
         try:
             # 1. Parse Start Time (Assuming ISO format string from Frontend)
@@ -43,8 +46,13 @@ class ExamService:
         if not session:
             return None, "Exam session not found"
             
-        if session.professor_id != professor_id:
+        if int(session.professor_id) != int(professor_id):
             return None, "Unauthorized: You can only delete your own exams."
+
+        # --- NEW SAFEGUARD: Prevent deleting if students participated ---
+        if len(session.attempts) > 0:
+            return "Cannot delete: Students have already submitted answers for this exam. Deleting it would destroy their grades.", 409
+        # ----------------------------------------------------------------
             
         ExamRepository.delete_session(session)
         return "Exam deleted successfully", None
@@ -111,12 +119,21 @@ class ExamService:
         }, None
     
     @staticmethod
-    def get_active_sessions_for_student(user_branch=None):
-        # Optional: You could filter by the student's branch if you wanted
+    def get_active_sessions_for_student(student_id):
+        # 1. Get the student
+        student = User.query.get(student_id)
+        if not student:
+            return []
+
+        # 2. Safety Check: If student has no branch, they see nothing.
+        if student.role == UserRole.STUDENT and not student.branch_id:
+            return []
+
         now = datetime.now()
         
-        # Fetch sessions where Now is between Start and End
+        # 3. Query: Active AND Matching Branch
         active_sessions = ExamSession.query.filter(
+            ExamSession.branch_id == student.branch_id,
             ExamSession.start_time <= now,
             ExamSession.end_time >= now,
             ExamSession.is_active == True
@@ -189,7 +206,7 @@ class ExamService:
         if not session:
             return None, "Session not found"
             
-        if session.professor_id != professor_id:
+        if int(session.professor_id) != int(professor_id):
             return None, "Unauthorized: You did not create this exam."
 
         results = []
@@ -210,3 +227,41 @@ class ExamService:
             })
             
         return results, None
+
+    @staticmethod
+    def get_live_tracking(professor_id, session_id):
+        session = ExamRepository.get_session_by_id(session_id)
+        
+        if not session:
+            return None, "Session not found"
+            
+        # Security Check
+        if int(session.professor_id) != int(professor_id):
+            return None, "Unauthorized"
+
+        live_data = []
+        now = datetime.now()
+        
+        for attempt in session.attempts:
+            # We only want students who are CURRENTLY taking it (not finished)
+            if attempt.finished_at is None:
+                
+                # Calculate time remaining for this specific student
+                elapsed_seconds = (now - attempt.started_at).total_seconds()
+                total_allowed_seconds = session.duration_minutes * 60
+                remaining_seconds = max(0, total_allowed_seconds - elapsed_seconds)
+                
+                # Determine status
+                status = "Active"
+                if remaining_seconds == 0:
+                    status = "Time Up (Not Submitted)"
+                
+                live_data.append({
+                    "student_id": attempt.user.id,
+                    "student_name": f"{attempt.user.first_name} {attempt.user.last_name}",
+                    "started_at": attempt.started_at.strftime("%H:%M:%S"),
+                    "minutes_remaining": int(remaining_seconds // 60),
+                    "status": status
+                })
+                
+        return live_data, None

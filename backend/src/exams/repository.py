@@ -20,7 +20,8 @@ class ExamRepository:
             duration_minutes=data['duration_minutes'],
             total_grade=data['total_grade'],
             qcm_id=data['qcm_id'],
-            professor_id=data['professor_id']
+            professor_id=data['professor_id'],
+            branch_id=data['branch_id']
         )
         db.session.add(session)
         db.session.commit()

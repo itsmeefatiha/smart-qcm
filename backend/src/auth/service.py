@@ -9,7 +9,7 @@ class AuthService:
     @staticmethod
     def register_user(data):
         # 1. Create User (Active = False by default now)
-        user, error = UserService.create_user(data)
+        user, error = UserService.create_user(data, is_active=False)
         if error:
             return None, error
 

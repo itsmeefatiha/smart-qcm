@@ -19,10 +19,10 @@ class ExamSession(db.Model):
     # Relationships
     qcm_id = db.Column(db.Integer, db.ForeignKey('qcms.id'), nullable=False)
     professor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-
+    branch_id = db.Column(db.Integer, db.ForeignKey('branches.id'), nullable=False)
     qcm = db.relationship('QCM', backref='sessions', lazy=True)
     professor = db.relationship('User', backref='exam_sessions', lazy=True)
-    
+    branch = db.relationship('Branch', backref='exam_sessions', lazy=True)
     attempts = db.relationship('StudentAttempt', backref='session', lazy=True, cascade="all, delete-orphan")
 
 class StudentAttempt(db.Model):
@@ -40,8 +40,8 @@ class StudentAttempt(db.Model):
     # Relationships
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     session_id = db.Column(db.Integer, db.ForeignKey('exam_sessions.id'), nullable=False)
-    
-    answers = db.relationship('StudentAnswer', backref='attempt', lazy=True)
+    user = db.relationship('User', backref='student_attempts', lazy=True)
+    answers = db.relationship('StudentAnswer', backref='attempt', lazy=True, cascade="all, delete-orphan")
 
 class StudentAnswer(db.Model):
     """

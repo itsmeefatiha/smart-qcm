@@ -9,6 +9,22 @@ class DocumentRepository:
         return doc
 
     @staticmethod
+    def get_by_branch(branch_id):
+        """Used by Students: Get all docs for their branch"""
+        return Document.query.filter_by(
+            branch_id=branch_id, 
+            is_archived=False
+        ).order_by(Document.upload_date.desc()).all()
+
+    @staticmethod
+    def get_by_uploader(user_id):
+        """Used by Professors: Get docs they uploaded"""
+        return Document.query.filter_by(
+            user_id=user_id, 
+            is_archived=False
+        ).order_by(Document.upload_date.desc()).all()
+    
+    @staticmethod
     def get_by_id(doc_id):
         return Document.query.get(doc_id)
 
