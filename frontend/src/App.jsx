@@ -14,6 +14,9 @@ import Documents from './pages/Documents';
 import Profile from './pages/Profile';
 import GenerateQcm from './pages/GenerateQcm';
 import MyQcms from './pages/MyQcms';
+import QcmDetails from './pages/QcmDetails';
+import MyExams from './pages/MyExams';
+import ExamSessionDetails from './pages/ExamSessionDetails';
 import CreateExamSession from './pages/CreateExamSession';
 import ActiveExams from './pages/ActiveExams';
 import TakeExam from './pages/TakeExam';
@@ -45,6 +48,10 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/generate-qcm" element={<GenerateQcm />} />
             <Route path="/my-qcms" element={<MyQcms />} />
+            <Route path="/qcm/:qcmId" element={<QcmDetails />} />
+            <Route path="/my-exams" element={<MyExams />} />
+            <Route path="/exam-session/:sessionId" element={<ExamSessionDetails />} />
+            <Route path="/exam-session/:sessionId/live" element={<ExamSessionDetails />} />
             <Route path="/create-exam/:qcmId" element={<CreateExamSession />} />
             <Route path="/active-exams" element={<ActiveExams />} />
             <Route path="/exam-results/:sessionId" element={<ExamResults />} />

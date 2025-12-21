@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { schoolAPI } from '../services/api';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -11,9 +12,27 @@ const Register = () => {
     first_name: '',
     last_name: '',
     role: 'student',
+    branch_id: '',
   });
+  const [branches, setBranches] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [branchesLoading, setBranchesLoading] = useState(true);
+
+  useEffect(() => {
+    fetchBranches();
+  }, []);
+
+  const fetchBranches = async () => {
+    try {
+      const response = await schoolAPI.listBranches();
+      setBranches(response.data);
+    } catch (err) {
+      console.error('Failed to load branches:', err);
+    } finally {
+      setBranchesLoading(false);
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -138,6 +157,35 @@ const Register = () => {
                 <option value="manager">Manager</option>
               </select>
             </div>
+
+            {formData.role === 'student' && (
+              <div>
+                <label htmlFor="branch_id" className="block text-sm font-medium text-gray-700 mb-2">
+                  Branch / Specialization *
+                </label>
+                <select
+                  id="branch_id"
+                  name="branch_id"
+                  value={formData.branch_id}
+                  onChange={handleChange}
+                  required
+                  disabled={branchesLoading}
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition disabled:opacity-50"
+                >
+                  <option value="">Select your branch...</option>
+                  {branches.map((branch) => (
+                    <option key={branch.id} value={branch.id}>
+                      {branch.name}
+                    </option>
+                  ))}
+                </select>
+                {branches.length === 0 && !branchesLoading && (
+                  <p className="mt-2 text-sm text-red-600">
+                    No branches available. Please contact administrator.
+                  </p>
+                )}
+              </div>
+            )}
 
             <button
               type="submit"

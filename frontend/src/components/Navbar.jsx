@@ -48,16 +48,36 @@ const Navbar = () => {
                   >
                     My QCMs
                   </Link>
+                  <Link
+                    to="/my-exams"
+                    className="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition"
+                  >
+                    My Exams
+                  </Link>
                 </>
               )}
 
               {user?.role === 'student' && (
-                <Link
-                  to="/active-exams"
-                  className="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition"
-                >
-                  Exams
-                </Link>
+                <>
+                  <Link
+                    to="/active-exams"
+                    className="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition"
+                  >
+                    Exams
+                  </Link>
+                  <Link
+                    to="/documents"
+                    className="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition"
+                  >
+                    Documents
+                  </Link>
+                  <Link
+                    to="/my-qcms"
+                    className="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition"
+                  >
+                    Practice
+                  </Link>
+                </>
               )}
             </div>
           </div>
@@ -127,17 +147,40 @@ const Navbar = () => {
                 >
                   My QCMs
                 </Link>
+                <Link
+                  to="/my-exams"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg"
+                >
+                  My Exams
+                </Link>
               </>
             )}
 
             {user?.role === 'student' && (
-              <Link
-                to="/active-exams"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg"
-              >
-                Exams
-              </Link>
+              <>
+                <Link
+                  to="/active-exams"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg"
+                >
+                  Exams
+                </Link>
+                <Link
+                  to="/documents"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg"
+                >
+                  Documents
+                </Link>
+                <Link
+                  to="/my-qcms"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg"
+                >
+                  Practice
+                </Link>
+              </>
             )}
 
             <Link

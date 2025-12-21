@@ -62,6 +62,9 @@ export const qcmAPI = {
   generate: (data) => api.post('/qcm/generate', data),
   list: () => api.get('/qcm/'),
   getById: (qcmId) => api.get(`/qcm/${qcmId}`),
+  delete: (qcmId) => api.delete(`/qcm/${qcmId}`),
+  updateQuestion: (questionId, data) => api.put(`/qcm/question/${questionId}`, data),
+  downloadPDF: (qcmId) => api.get(`/qcm/${qcmId}/download`, { responseType: 'blob' }),
 };
 
 export const examAPI = {
@@ -69,7 +72,16 @@ export const examAPI = {
   join: (data) => api.post('/exams/join', data),
   submit: (data) => api.post('/exams/submit', data),
   listActive: () => api.get('/exams/active'),
+  listProfessorExams: () => api.get('/exams/professor/list'),
   getResults: (sessionId) => api.get(`/exams/${sessionId}/results`),
+  getLiveTracking: (sessionId) => api.get(`/exams/${sessionId}/live`),
+  deleteSession: (sessionId) => api.delete(`/exams/${sessionId}`),
+};
+
+export const schoolAPI = {
+  listBranches: () => api.get('/school/branches'),
+  getBranch: (branchId) => api.get(`/school/branches/${branchId}`),
+  createBranch: (data) => api.post('/school/branch', data),
 };
 
 export default api;
