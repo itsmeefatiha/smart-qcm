@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { qcmAPI, examAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 const QcmDetails = () => {
   const { qcmId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [qcm, setQcm] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -155,19 +157,23 @@ const QcmDetails = () => {
               </svg>
               Download PDF
             </button>
-            <Link
-              to={`/create-exam/${qcmId}`}
-              className="bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2 px-4 rounded-lg transition"
-            >
-              Create Exam Session
-            </Link>
-            <button
-              onClick={handleDelete}
-              disabled={deleting}
-              className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition disabled:opacity-50"
-            >
-              {deleting ? 'Deleting...' : 'Delete QCM'}
-            </button>
+            {user?.role === 'professor' && (
+              <>
+                <Link
+                  to={`/create-exam/${qcmId}`}
+                  className="bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2 px-4 rounded-lg transition"
+                >
+                  Create Exam Session
+                </Link>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition disabled:opacity-50"
+                >
+                  {deleting ? 'Deleting...' : 'Delete QCM'}
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -232,15 +238,17 @@ const QcmDetails = () => {
                   <h3 className="text-lg font-bold text-gray-900">
                     Question {index + 1}
                   </h3>
-                  <button
-                    onClick={() => startEdit(question)}
-                    className="text-primary-600 hover:text-primary-700 font-medium text-sm flex items-center gap-1"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                    Edit
-                  </button>
+                  {user?.role === 'professor' && (
+                    <button
+                      onClick={() => startEdit(question)}
+                      className="text-primary-600 hover:text-primary-700 font-medium text-sm flex items-center gap-1"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      Edit
+                    </button>
+                  )}
                 </div>
 
                 <p className="text-gray-900 mb-4">{question.text}</p>

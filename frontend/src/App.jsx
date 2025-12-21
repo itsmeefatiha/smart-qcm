@@ -22,6 +22,9 @@ import ActiveExams from './pages/ActiveExams';
 import TakeExam from './pages/TakeExam';
 import ExamResult from './pages/ExamResult';
 import ExamResults from './pages/ExamResults';
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
+import ManagerDashboard from './pages/ManagerDashboard';
 
 function App() {
   return (
@@ -34,6 +37,19 @@ function App() {
           <Route path="/activate/:token" element={<Activate />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
+
+          <Route path="/admin-dashboard" element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/manager-dashboard" element={
+            <ProtectedRoute>
+              <ManagerDashboard />
+            </ProtectedRoute>
+          } />
 
           <Route
             element={
