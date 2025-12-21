@@ -3,21 +3,16 @@ from flask_jwt_extended import create_access_token
 from .repository import AuthRepository
 from src.users.service import UserService
 from .security import generate_token, verify_token, send_email
-from flask import url_for
 
 class AuthService:
     @staticmethod
     def register_user(data):
-        # 1. Create User (Active = False by default now)
         user, error = UserService.create_user(data, is_active=False)
         if error:
             return None, error
 
-        # 2. Generate Activation Token
         token = generate_token(user.email, salt='email-confirm')
 
-        # 3. Send Email
-        # Note: In React, this link should point to your FRONTEND, e.g., localhost:5173/activate/token
         activation_link = f"http://localhost:5173/activate/{token}"
         
         html = f"""
@@ -53,7 +48,6 @@ class AuthService:
         user = AuthRepository.find_user_by_email(email)
 
         if user and bcrypt.check_password_hash(user.password_hash, password):
-            # CHECK ACTIVE STATUS
             if not user.is_active:
                 return None, "Please activate your account first (check your email)."
 
