@@ -1,19 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { documentAPI } from '../services/api';
+import { documentAPI, schoolAPI } from '../services/api';
 
 const Upload = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     module: '',
-    branch: '',
+    branch_id: '',
     year: '',
   });
+  const [branches, setBranches] = useState([]);
   const [file, setFile] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+
+  useEffect(() => {
+    fetchBranches();
+  }, []);
+
+  const fetchBranches = async () => {
+    try {
+      const response = await schoolAPI.listBranches();
+      setBranches(response.data);
+    } catch (err) {
+      console.error('Failed to load branches:', err);
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -76,6 +90,11 @@ const Upload = () => {
       return;
     }
 
+    if (!formData.branch_id) {
+      setError('Please select a branch');
+      return;
+    }
+
     setLoading(true);
     setError('');
     setSuccess('');
@@ -84,13 +103,13 @@ const Upload = () => {
       const uploadData = new FormData();
       uploadData.append('file', file);
       uploadData.append('module', formData.module);
-      uploadData.append('branch', formData.branch);
+      uploadData.append('branch_id', formData.branch_id);
       uploadData.append('year', formData.year);
 
       await documentAPI.upload(uploadData);
 
       setSuccess('Document uploaded successfully!');
-      setFormData({ module: '', branch: '', year: '' });
+      setFormData({ module: '', branch_id: '', year: '' });
       setFile(null);
 
       setTimeout(() => {
@@ -191,18 +210,24 @@ const Upload = () => {
           </div>
 
           <div>
-            <label htmlFor="branch" className="block text-sm font-medium text-gray-700 mb-2">
-              Branch / Specialization
+            <label htmlFor="branch_id" className="block text-sm font-medium text-gray-700 mb-2">
+              Branch / Specialization *
             </label>
-            <input
-              id="branch"
-              name="branch"
-              type="text"
-              value={formData.branch}
+            <select
+              id="branch_id"
+              name="branch_id"
+              required
+              value={formData.branch_id}
               onChange={handleChange}
               className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
-              placeholder="e.g., Génie Logiciel"
-            />
+            >
+              <option value="">Select branch...</option>
+              {branches.map((branch) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>

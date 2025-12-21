@@ -1,8 +1,16 @@
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const Dashboard = () => {
   const { user } = useAuth();
+
+  if (user?.role === 'admin') {
+    return <Navigate to="/admin-dashboard" replace />;
+  }
+
+  if (user?.role === 'manager') {
+    return <Navigate to="/manager-dashboard" replace />;
+  }
 
   const getDashboardMessage = () => {
     switch (user?.role) {

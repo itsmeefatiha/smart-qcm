@@ -1,19 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { qcmAPI, examAPI } from '../services/api';
+import { qcmAPI, examAPI, schoolAPI } from '../services/api';
 
 const CreateExamSession = () => {
   const { qcmId } = useParams();
   const navigate = useNavigate();
   const [qcm, setQcm] = useState(null);
-  
+  const [branches, setBranches] = useState([]);
+
   const [formData, setFormData] = useState({
     description: '',
     start_time: '',
     duration_minutes: 60,
     total_grade: 20,
+    branch_id: '',
   });
-  
+
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -21,7 +23,17 @@ const CreateExamSession = () => {
 
   useEffect(() => {
     fetchQcm();
+    fetchBranches();
   }, [qcmId]);
+
+  const fetchBranches = async () => {
+    try {
+      const response = await schoolAPI.listBranches();
+      setBranches(response.data);
+    } catch (err) {
+      console.error('Failed to load branches:', err);
+    }
+  };
 
   const fetchQcm = async () => {
     try {
@@ -58,14 +70,20 @@ const CreateExamSession = () => {
     setSubmitting(true);
     setError('');
 
+    if (!formData.branch_id) {
+      setError('Please select a branch');
+      setSubmitting(false);
+      return;
+    }
+
     try {
-      // UPDATED PAYLOAD: Sending description, ignoring end_time
       const response = await examAPI.create({
         qcm_id: parseInt(qcmId),
         description: formData.description,
-        start_time: new Date(formData.start_time).toISOString(), // Convert to UTC ISO for backend
+        start_time: new Date(formData.start_time).toISOString(),
         duration_minutes: parseInt(formData.duration_minutes),
         total_grade: parseInt(formData.total_grade),
+        branch_id: parseInt(formData.branch_id),
       });
 
       setSessionCode(response.data.code);
@@ -209,6 +227,28 @@ const CreateExamSession = () => {
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
               />
             </div>
+          </div>
+
+          <div>
+            <label htmlFor="branch_id" className="block text-sm font-medium text-gray-700 mb-2">
+              Target Branch *
+            </label>
+            <select
+              id="branch_id"
+              name="branch_id"
+              required
+              value={formData.branch_id}
+              onChange={handleChange}
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
+            >
+              <option value="">Select branch...</option>
+              {branches.map((branch) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
+                </option>
+              ))}
+            </select>
+            <p className="mt-2 text-sm text-gray-500">Only students from this branch will see this exam</p>
           </div>
 
           <div>
