@@ -8,7 +8,7 @@ from flask import current_app
 
 class UserService:
     @staticmethod
-    def create_user(data, is_active=False): # <--- Added Parameter with default
+    def create_user(data, is_active=False):
         # 1. Check uniqueness
         if UserRepository.get_by_email(data.get('email')):
             return None, "Email already registered"
@@ -32,7 +32,7 @@ class UserService:
             last_name=data.get('last_name'),
             role=role,
             branch_id=branch_id,
-            is_active=is_active # <--- Set the active status
+            is_active=is_active
         )
 
         return UserRepository.create_user(new_user), None

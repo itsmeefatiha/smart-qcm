@@ -1,4 +1,4 @@
-from flask import current_app, url_for
+from flask import current_app
 from flask_mail import Message
 from src.extensions import mail
 
