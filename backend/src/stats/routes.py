@@ -41,3 +41,8 @@ def chart_completion_rate():
     Returns Pie chart data: Submitted vs Abandoned exams.
     """
     return jsonify(StatsService.get_completion_rate_chart()), 200
+
+@stats_bp.route('/charts/branch-performance', methods=['GET'])
+@role_required([UserRole.MANAGER, UserRole.ADMIN])
+def chart_branch_performance():
+    return jsonify(StatsService.get_avg_score_by_branch_chart()), 200

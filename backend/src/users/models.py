@@ -1,6 +1,7 @@
 import enum
 from datetime import datetime
 from src.extensions import db
+from flask import url_for
 
 class UserRole(enum.Enum):
     ADMIN = "admin"
@@ -25,6 +26,12 @@ class User(db.Model):
     branch = db.relationship('Branch', backref='users', lazy=True)
 
     def to_dict(self):
+
+        if self.profile_image:
+            image_url = url_for('static', filename=f'profile_pics/{self.profile_image}', _external=True)
+        else:
+            # Fallback if somehow empty
+            image_url = url_for('static', filename='profile_pics/default.png', _external=True)
         return {
             "id": self.id,
             "email": self.email,
@@ -32,6 +39,6 @@ class User(db.Model):
             "last_name": self.last_name,
             "role": self.role.value,
             "branch": self.branch.name if self.branch else None,
-            "profile_image_url": f"http://localhost:5000/static/profile_pics/{self.profile_image}",
+            "profile_image_url": image_url,
             "created_at": self.created_at.isoformat()
         }

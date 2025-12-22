@@ -56,9 +56,21 @@ const AdminDashboard = () => {
     setError('');
     setSuccess('');
 
+    // --- FIX: Prepare the payload ---
+    const payload = { ...formData };
+    
+    // If branch_id is empty or role is not student, send null
+    if (payload.branch_id === '' || payload.role !== 'student') {
+      payload.branch_id = null;
+    }
+    // --------------------------------
+
     try {
-      await api.post('/users/', formData);
+      // Send 'payload' instead of 'formData'
+      await api.post('/users/', payload); 
+      
       setSuccess('User created successfully!');
+      // ... (reset form and fetch data) ...
       setFormData({
         email: '',
         password: '',
@@ -73,7 +85,11 @@ const AdminDashboard = () => {
         setSuccess('');
       }, 2000);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to create user');
+      // Improved error display to see exactly what failed
+      const msg = err.response?.data?.messages 
+        ? JSON.stringify(err.response.data.messages) 
+        : (err.response?.data?.error || 'Failed to create user');
+      setError(msg);
     }
   };
 
@@ -122,11 +138,24 @@ const AdminDashboard = () => {
               <span className="text-xl font-bold text-white">Admin Panel</span>
             </div>
             <button
-              onClick={handleLogout}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
-            >
-              Logout
-            </button>
+  onClick={handleLogout}
+  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2"
+>  Logout
+  <svg 
+    className="w-4 h-4" 
+    fill="none" 
+    stroke="currentColor" 
+    viewBox="0 0 24 24"
+  >
+    <path 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+      strokeWidth={2} 
+      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" 
+    />
+  </svg>
+
+</button>
           </div>
         </div>
       </nav>
@@ -173,10 +202,24 @@ const AdminDashboard = () => {
                 <p className="text-3xl font-bold text-purple-600">{stats.professors}</p>
               </div>
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
-              </div>
+  <svg 
+    className="w-6 h-6 text-purple-600" 
+    fill="none" 
+    stroke="currentColor" 
+    viewBox="0 0 24 24"
+  >
+    <path d="M12 14l9-5-9-5-9 5 9 5z" />
+    <path 
+      d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" 
+    />
+    <path 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+      strokeWidth={2} 
+      d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" 
+    />
+  </svg>
+</div>
             </div>
           </div>
 

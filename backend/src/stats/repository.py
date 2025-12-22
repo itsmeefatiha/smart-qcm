@@ -1,4 +1,5 @@
 from sqlalchemy import func, case, desc
+from src.school.models import Branch
 from src.qcm.models import Question
 from src.extensions import db
 from src.users.models import User, UserRole
@@ -59,3 +60,17 @@ class StatsRepository:
                      .filter(StudentAttempt.finished_at != None).scalar()
         
         return total, finished
+
+    @staticmethod
+    def get_average_score_by_branch():
+        """
+        Groups all attempts by Branch and calculates the average score for each.
+        Returns: [('Big Data', 14.5), ('Software Eng', 12.3), ...]
+        """
+        return db.session.query(
+            Branch.name,
+            func.avg(StudentAttempt.score)
+        ).join(User, User.branch_id == Branch.id)\
+         .join(StudentAttempt, StudentAttempt.user_id == User.id)\
+         .group_by(Branch.name)\
+         .all()

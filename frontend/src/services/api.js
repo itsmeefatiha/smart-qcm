@@ -45,6 +45,13 @@ export const authAPI = {
 
 export const userAPI = {
   getProfile: () => api.get('/users/profile'),
+  uploadProfileImage: (formData) => {
+    return api.post('/users/profile/image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
 };
 
 export const documentAPI = {
@@ -76,12 +83,21 @@ export const examAPI = {
   getResults: (sessionId) => api.get(`/exams/${sessionId}/results`),
   getLiveTracking: (sessionId) => api.get(`/exams/${sessionId}/live`),
   deleteSession: (sessionId) => api.delete(`/exams/${sessionId}`),
+  listAll: () => api.get('/exams/all'),
 };
 
 export const schoolAPI = {
   listBranches: () => api.get('/school/branches'),
   getBranch: (branchId) => api.get(`/school/branches/${branchId}`),
   createBranch: (data) => api.post('/school/branch', data),
+};
+
+export const statsAPI = {
+  getDashboardStats: () => api.get('/stats/dashboard'),
+  getBranchStats: (branchId) => api.get(`/stats/branch/${branchId}`),
+  getHardestQuestions: () => api.get('/stats/charts/hardest-questions'),
+  getCompletionRate: () => api.get('/stats/charts/completion-rate'),
+  getBranchPerformance: () => api.get('/stats/charts/branch-performance'),
 };
 
 export default api;

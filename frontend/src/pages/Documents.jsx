@@ -163,19 +163,7 @@ const Documents = () => {
                         {doc.year}
                       </span>
                     )}
-                    {doc.has_text && (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                        Text Extracted
-                      </span>
-                    )}
                   </div>
-
-                  {doc.preview && (
-                    <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600 line-clamp-2">{doc.preview}</p>
-                    </div>
-                  )}
-
                   <div className="mt-4 text-sm text-gray-500">
                     Uploaded on {new Date(doc.upload_date).toLocaleDateString('en-US', {
                       year: 'numeric',

@@ -31,6 +31,7 @@ class Document(db.Model):
     # (The backref 'documents' was already defined in Branch model, so we don't strictly need to redefine it here, 
     # but defining the relationship here makes access easier if backref wasn't explicit)
     # branch = db.relationship('Branch', backref='documents') # optional if backref exists
+    branch = db.relationship('Branch', backref='documents')
 
     def to_dict(self):
         return {

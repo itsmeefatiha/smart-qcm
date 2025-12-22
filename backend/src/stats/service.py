@@ -1,11 +1,12 @@
 from .repository import StatsRepository
+from src.users.models import UserRole
 
 class StatsService:
     @staticmethod
     def get_global_stats():
         """Overview for the Manager Dashboard"""
         # 1. Fetch data from Repository
-        total_students = StatsRepository.count_users_by_role("student")
+        total_students = StatsRepository.count_users_by_role(UserRole.STUDENT)
         total_exams = StatsRepository.count_total_exams()
         total_attempts = StatsRepository.count_total_attempts()
         avg_score = StatsRepository.get_global_average_score()
@@ -92,4 +93,25 @@ class StatsService:
         return {
             "labels": ["Submitted Successfully", "Abandoned / In Progress"],
             "data": [finished, abandoned]
+        }
+
+    @staticmethod
+    def get_avg_score_by_branch_chart():
+        """
+        Returns data for a Bar Chart: Average Score vs Branch
+        """
+        raw_data = StatsRepository.get_average_score_by_branch()
+        
+        labels = []
+        data = []
+        
+        for branch_name, avg_score in raw_data:
+            labels.append(branch_name)
+            # Round to 2 decimal places for cleaner display
+            data.append(round(avg_score, 2) if avg_score else 0)
+            
+        return {
+            "labels": labels,
+            "data": data,
+            "label": "Average Score"
         }
