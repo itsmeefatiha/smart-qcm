@@ -1,6 +1,9 @@
 from datetime import datetime
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
+
+from src.auth.decorators import role_required
+from src.users.models import UserRole
 from .service import ExamService
 from . import exams_bp
 
@@ -102,12 +105,18 @@ def submit_exam():
 @exams_bp.route('/active', methods=['GET'])
 @jwt_required()
 def list_active_exams():
-    sessions = ExamService.get_active_sessions_for_student()
+    # 1. Get the Student ID from the token
+    student_id = get_jwt_identity()
+    
+    # 2. Pass it to the Service
+    sessions = ExamService.get_active_sessions_for_student(student_id)
+    
     output = []
     for s in sessions:
         output.append({
             "session_id": s.id,
-            "module_name": s.qcm.document.module,
+            # Handle potential NoneType if document/module is missing, though database constraints should prevent this
+            "module_name": s.qcm.document.module if s.qcm.document else "Unknown Module",
             "title": s.qcm.title,
             "start_time": s.start_time.isoformat() + 'Z', 
             "end_time": s.end_time.isoformat() + 'Z',
@@ -138,3 +147,27 @@ def track_live_exam(session_id):
         return jsonify({"error": error}), 403
         
     return jsonify(data), 200
+
+@exams_bp.route('/all', methods=['GET'])
+@role_required([UserRole.ADMIN, UserRole.MANAGER]) # Only Admins/Managers can see ALL exams
+def list_all_exams():
+    """
+    Admin Endpoint: List every exam session ever created.
+    """
+    sessions = ExamService.get_all_exams_admin()
+    
+    output = []
+    for s in sessions:
+        output.append({
+            "id": s.id,
+            "code": s.code,
+            "title": s.qcm.title,
+            "branch": s.branch.name if s.branch else "No Branch",
+            "professor": f"{s.professor.first_name} {s.professor.last_name}",
+            "start_time": s.start_time.isoformat(),
+            "end_time": s.end_time.isoformat(),
+            "status": "Active" if s.is_active else "Inactive",
+            "student_count": len(s.attempts)
+        })
+        
+    return jsonify(output), 200

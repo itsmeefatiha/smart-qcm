@@ -1,7 +1,6 @@
-from flask import request, jsonify
+from flask import request, jsonify, url_for
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from marshmallow import ValidationError
-
 from src.auth.decorators import role_required
 from src.auth.schemas import RegisterSchema
 from src.users.models import UserRole
@@ -32,21 +31,19 @@ def upload_profile_image():
     
     if file.filename == '':
         return jsonify({"error": "No selected file"}), 400
-        
-    # Check Allowed Extensions (Optional but recommended)
-    allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
-    if '.' not in file.filename or \
-       file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
-        return jsonify({"error": "File type not allowed"}), 400
 
     filename, error = UserService.save_profile_picture(user_id, file)
     
     if error:
         return jsonify({"error": error}), 500
         
+    # --- CRITICAL FIX: Use Dynamic URL ---
+    image_url = url_for('static', filename=f'profile_pics/{filename}', _external=True)
+    # -------------------------------------
+
     return jsonify({
         "message": "Profile image updated", 
-        "image_url": f"http://localhost:5000/static/profile_pics/{filename}"
+        "image_url": image_url
     }), 200
 
 @users_bp.route('/', methods=['POST'])
@@ -77,7 +74,7 @@ def create_user_by_admin():
     }), 201
 
 @users_bp.route('/', methods=['GET'])
-@role_required([UserRole.ADMIN])
+@role_required([UserRole.ADMIN, UserRole.MANAGER])
 def list_all_users():
     """
     Admin Endpoint: List all registered users.

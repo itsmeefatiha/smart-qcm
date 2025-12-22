@@ -1,3 +1,4 @@
+from src.users.repository import UserRepository
 from src.users.models import UserRole, User
 from .repository import ExamRepository
 from .models import ExamSession, StudentAnswer
@@ -200,21 +201,26 @@ class ExamService:
     
 
     @staticmethod
-    def get_exam_results(professor_id, session_id):
+    def get_exam_results(user_id, session_id):
         session = ExamRepository.get_session_by_id(session_id)
         
         if not session:
             return None, "Session not found"
             
-        if int(session.professor_id) != int(professor_id):
-            return None, "Unauthorized: You did not create this exam."
+        # --- NEW LOGIC: Check permissions ---
+        user = UserRepository.get_by_id(user_id)
+        
+        # Allow access if user is the Creator OR an Admin/Manager
+        is_owner = int(session.professor_id) == int(user_id)
+        is_admin_or_manager = user.role in [UserRole.ADMIN, UserRole.MANAGER]
+
+        if not is_owner and not is_admin_or_manager:
+            return None, "Unauthorized: You do not have permission to view these results."
+        # ------------------------------------
 
         results = []
         for attempt in session.attempts:
-            # Skip students who joined but haven't finished
             status = "Finished" if attempt.finished_at else "In Progress"
-            
-            # Fetch student name
             student_name = f"{attempt.user.first_name} {attempt.user.last_name}"
             
             results.append({
@@ -227,6 +233,14 @@ class ExamService:
             })
             
         return results, None
+    
+    @staticmethod
+    def get_all_exams_admin():
+        """
+        Get all exams for Admin purposes.
+        """
+        sessions = ExamRepository.get_all_exams()
+        return sessions
 
     @staticmethod
     def get_live_tracking(professor_id, session_id):

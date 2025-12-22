@@ -50,6 +50,7 @@ def get_qcm(qcm_id):
     return jsonify({
         "id": qcm.id,
         "title": qcm.title,
+        "level": qcm.level,
         "questions": [q.to_dict() for q in qcm.questions]
     }), 200
 

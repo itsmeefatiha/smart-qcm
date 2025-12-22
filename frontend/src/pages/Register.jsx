@@ -47,7 +47,15 @@ const Register = () => {
     setLoading(true);
     setError('');
 
-    const result = await register(formData);
+
+    const payload = { ...formData };
+
+    // If branch_id is empty (or if role is not student), send null instead of ""
+    if (payload.branch_id === '' || payload.role !== 'student') {
+      payload.branch_id = null;
+    }
+
+    const result = await register(payload);
 
     if (result.success) {
       navigate('/login', {

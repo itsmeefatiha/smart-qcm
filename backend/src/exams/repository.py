@@ -71,3 +71,8 @@ class ExamRepository:
     @staticmethod
     def get_student_attempt(user_id, session_id):
         return StudentAttempt.query.filter_by(user_id=user_id, session_id=session_id).first()
+    
+    @staticmethod
+    def get_all_exams():
+        """Returns every single exam session in the database"""
+        return ExamSession.query.order_by(ExamSession.start_time.desc()).all()

@@ -309,24 +309,6 @@ const Dashboard = () => {
           </Link>
         </div>
       ) : null}
-
-      <div className="mt-12 bg-white rounded-xl shadow-md p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Quick Info</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <div className="text-3xl font-bold text-primary-600 mb-2 capitalize">{user?.role}</div>
-            <div className="text-gray-600">Account Type</div>
-          </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <div className="text-3xl font-bold text-green-600 mb-2">Active</div>
-            <div className="text-gray-600">Status</div>
-          </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <div className="text-3xl font-bold text-orange-600 mb-2">AI-Powered</div>
-            <div className="text-gray-600">Platform</div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
