@@ -1,3 +1,4 @@
+#flask create_admin admin@gmail.com Password123 <= Command to create a superuser admin
 import click
 from flask.cli import with_appcontext
 from src.extensions import db, bcrypt
