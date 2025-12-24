@@ -50,8 +50,6 @@ const Navbar = () => {
               )}
               {user?.role === 'manager' && (
     <>
-      {/* Since ManagerDashboard IS the dashboard, this link might be redundant unless you have other pages */}
-      {/* But you specifically asked for an EXAMS link in a previous step */}
       <Link to="/exams/all" className="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition">
         Exams
       </Link>
@@ -61,7 +59,7 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Right Side: Profile & Logout */}
-          <div className="hidden md:flex items-center gap-6"> {/* Increased gap for better spacing */}
+          <div className="hidden md:flex items-center gap-6">
             <Link
               to="/profile"
               className="flex items-center gap-3 text-gray-700 hover:text-primary-600 transition group"
