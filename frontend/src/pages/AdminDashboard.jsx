@@ -63,10 +63,8 @@ const AdminDashboard = () => {
     if (payload.branch_id === '' || payload.role !== 'student') {
       payload.branch_id = null;
     }
-    // --------------------------------
 
     try {
-      // Send 'payload' instead of 'formData'
       await api.post('/users/', payload); 
       
       setSuccess('User created successfully!');
