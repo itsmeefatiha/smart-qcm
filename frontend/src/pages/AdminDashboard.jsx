@@ -56,7 +56,6 @@ const AdminDashboard = () => {
     setError('');
     setSuccess('');
 
-    // --- FIX: Prepare the payload ---
     const payload = { ...formData };
     
     // If branch_id is empty or role is not student, send null
