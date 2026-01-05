@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api, { schoolAPI } from '../services/api';
 import Navbar from '../components/Navbar';
-
-// Chart.js Imports
 import { 
   Chart as ChartJS, 
   ArcElement, 
