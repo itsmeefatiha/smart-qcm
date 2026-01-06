@@ -65,7 +65,7 @@ const ManagerDashboard = () => {
       setGlobalStats(statsRes.data);
       setBranches(branchesRes.data);
       setCompletionRate(completionRes.data);
-      setBranchChartData(branchPerfRes.data); // <--- Store Bar Chart Data
+      setBranchChartData(branchPerfRes.data);
 
       if (branchesRes.data.length > 0) {
         setSelectedBranch(branchesRes.data[0].id);
