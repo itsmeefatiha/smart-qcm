@@ -54,12 +54,11 @@ const ManagerDashboard = () => {
 
   const fetchData = async () => {
     try {
-      // Changed: Fetch branch-performance instead of hardest-questions
       const [statsRes, branchesRes, completionRes, branchPerfRes] = await Promise.all([
         api.get('/stats/dashboard'),
         schoolAPI.listBranches(),
         api.get('/stats/charts/completion-rate'),
-        api.get('/stats/charts/branch-performance') // <--- NEW ENDPOINT
+        api.get('/stats/charts/branch-performance')
       ]);
 
       setGlobalStats(statsRes.data);
