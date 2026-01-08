@@ -34,8 +34,6 @@ const ManagerDashboard = () => {
   const [branches, setBranches] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [branchStats, setBranchStats] = useState(null);
-  
-  // Changed: Removed hardestQuestions, added branchChartData
   const [branchChartData, setBranchChartData] = useState(null);
   const [completionRate, setCompletionRate] = useState(null);
   const [studentsByBranch, setStudentsByBranch] = useState([]);
@@ -199,7 +197,7 @@ const ManagerDashboard = () => {
                     datasets: [{
                       label: 'Average Score (out of 20)',
                       data: branchChartData.data,
-                      backgroundColor: '#3B82F6', // Blue color
+                      backgroundColor: '#3B82F6',
                       borderRadius: 4,
                     }]
                   }}
