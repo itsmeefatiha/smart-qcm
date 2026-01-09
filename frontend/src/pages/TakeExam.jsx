@@ -12,7 +12,6 @@ const TakeExam = () => {
   );
   const [answers, setAnswers] = useState({});
   
-  // NEW: Initialize with per-question time, not total time
   const [timeLeft, setTimeLeft] = useState(
     examData?.exam_config?.initial_question_time || examData?.exam_config?.seconds_per_question || 60
   );
@@ -45,7 +44,7 @@ const TakeExam = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [currentQuestion]); // <--- Dependency: Re-run when question changes
+  }, [currentQuestion]);
 
   // --- 3. AUTO-ADVANCE LOGIC ---
   const handleTimeUp = () => {
@@ -81,7 +80,7 @@ const TakeExam = () => {
     const questions = examData.qcm.questions;
     const answersArray = questions.map((q) => ({
       question_id: q.id,
-      selected_index: answers[q.id] !== undefined ? answers[q.id] : 0, // Default to 0 if skipped
+      selected_index: answers[q.id] !== undefined ? answers[q.id] : 0,
     }));
 
     try {
