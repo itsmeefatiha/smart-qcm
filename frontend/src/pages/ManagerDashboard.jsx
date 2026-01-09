@@ -185,8 +185,7 @@ const ManagerDashboard = () => {
               </div>
             </div>
           )}
-
-          {/* 2. REPLACED: Bar Chart for Average Score by Branch */}
+          {/* 2. Bar Chart */}
           {branchChartData && (
             <div className="bg-white rounded-xl shadow-md p-6">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Average Score by Branch</h3>
@@ -207,7 +206,7 @@ const ManagerDashboard = () => {
                     scales: {
                       y: { 
                         beginAtZero: true, 
-                        max: 20 // Assuming standard grading /20
+                        max: 20
                       }
                     },
                     plugins: {
