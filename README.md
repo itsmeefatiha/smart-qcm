@@ -331,7 +331,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 <div align="center">
 
-**Made with ❤️ for educators and students**
+**Made with ❤️**
 
 [⬆ Back to Top](#smartqcm-)
 

@@ -16,7 +16,6 @@ class ExamService:
         
         if 'branch_id' not in data:
             return None, "Branch ID is required (e.g., Genie Logiciel, Big Data)."
-        # --- NEW: Date Calculation Logic ---
         try:
             # 1. Parse Start Time (Assuming ISO format string from Frontend)
             # Example: "2025-12-20T10:00"
