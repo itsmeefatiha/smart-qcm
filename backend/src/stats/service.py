@@ -107,7 +107,6 @@ class StatsService:
         
         for branch_name, avg_score in raw_data:
             labels.append(branch_name)
-            # Round to 2 decimal places for cleaner display
             data.append(round(avg_score, 2) if avg_score else 0)
             
         return {
