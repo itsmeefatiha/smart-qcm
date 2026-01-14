@@ -78,7 +78,7 @@ class AIGenerator:
             response = model.generate_content(prompt)
             questions_data = json.loads(response.text)
 
-            # Python-side shuffling (Always keep this)
+            # Python-side shuffling
             for q in questions_data:
                 random.shuffle(q['choices'])
             
