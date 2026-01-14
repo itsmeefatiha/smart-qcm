@@ -3,7 +3,7 @@ from werkzeug.utils import secure_filename
 from .extractor import extract_text_from_file, allowed_file
 from .repository import DocumentRepository
 from .models import Document
-from src.users.models import User, UserRole # Need this to check roles
+from src.users.models import User, UserRole
 
 UPLOAD_DIR = os.path.join(os.getcwd(), 'uploads')
 if not os.path.exists(UPLOAD_DIR):
@@ -40,7 +40,7 @@ class DocumentService:
                 year=data.get('year', ''),
                 extracted_text=extracted_text,
                 user_id=user_id,
-                branch_id=branch_id # <--- Saving the ID
+                branch_id=branch_id
             )
             
             return DocumentRepository.create(new_doc), None
