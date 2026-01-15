@@ -11,7 +11,6 @@ class Document(db.Model):
     module = db.Column(db.String(100), nullable=False)    # e.g., "Analyse de Données"
     year = db.Column(db.String(20), nullable=True)        # e.g., "2024-2025"
     
-    # --- CHANGE: Link to Branch Table ---
     # Was: branch = db.Column(db.String(100)...)
     branch_id = db.Column(db.Integer, db.ForeignKey('branches.id'), nullable=False)
     
@@ -22,8 +21,6 @@ class Document(db.Model):
     # Archival & History
     upload_date = db.Column(db.DateTime, default=datetime.utcnow)
     is_archived = db.Column(db.Boolean, default=False)
-    
-    # Who uploaded it? (Professor)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
     # Relationships
