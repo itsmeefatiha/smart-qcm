@@ -10,8 +10,6 @@ class Document(db.Model):
     filename = db.Column(db.String(255), nullable=False)
     module = db.Column(db.String(100), nullable=False)    # e.g., "Analyse de Données"
     year = db.Column(db.String(20), nullable=True)        # e.g., "2024-2025"
-    
-    # Was: branch = db.Column(db.String(100)...)
     branch_id = db.Column(db.Integer, db.ForeignKey('branches.id'), nullable=False)
     
     # Storage
