@@ -91,7 +91,8 @@ def join_session():
         "message": "Exam started",
         "attempt_id": result['attempt_id'],
         "qcm": result['qcm'], 
-        "exam_config": result['exam_config']
+        "exam_config": result['exam_config'],
+        "saved_answers": result.get('saved_answers', {})  # Include saved answers
     }), 200
 
 @exams_bp.route('/submit', methods=['POST'])
@@ -99,6 +100,19 @@ def join_session():
 def submit_exam():
     data = request.get_json()
     result, error = ExamService.submit_exam(data.get('attempt_id'), data.get('answers'))
+    if error: return jsonify({"error": error}), 400
+    return jsonify(result), 200
+
+@exams_bp.route('/save-answer', methods=['POST'])
+@jwt_required()
+def save_answer():
+    """Save a single answer for a question"""
+    data = request.get_json()
+    result, error = ExamService.save_answer(
+        data.get('attempt_id'),
+        data.get('question_id'),
+        data.get('selected_index')
+    )
     if error: return jsonify({"error": error}), 400
     return jsonify(result), 200
 

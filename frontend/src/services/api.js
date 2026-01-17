@@ -78,6 +78,7 @@ export const examAPI = {
   create: (data) => api.post('/exams/create', data),
   join: (data) => api.post('/exams/join', data),
   submit: (data) => api.post('/exams/submit', data),
+  saveAnswer: (data) => api.post('/exams/save-answer', data),
   listActive: () => api.get('/exams/active'),
   listProfessorExams: () => api.get('/exams/professor/list'),
   getResults: (sessionId) => api.get(`/exams/${sessionId}/results`),
