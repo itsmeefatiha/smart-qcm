@@ -76,36 +76,42 @@ class ExamService:
         # --- GET OR CREATE ATTEMPT ---
         attempt = ExamRepository.get_student_attempt(student_id, session.id)
         if not attempt:
-            # First time joining: Timer starts NOW
+            # First time joining: Create attempt but timer is based on exam start time
             attempt = ExamRepository.create_attempt(student_id, session.id)
         
         if attempt.finished_at:
              return None, "You have already submitted this exam."
 
-        # --- THE FIX: CALCULATE CURRENT QUESTION INDEX ---
         
         # 1. Calculate time per question
         question_count = len(session.qcm.questions)
         total_seconds = session.duration_minutes * 60
         seconds_per_question = int(total_seconds / question_count) if question_count > 0 else 0
 
-        # 2. Calculate how much time has passed since they STARTED
-        # (This timer kept running even while they were disconnected!)
-        elapsed_time = (now - attempt.started_at).total_seconds()
+        # 2. Calculate how much time has passed since EXAM STARTED (not when student joined)
+        # This ensures all students see the same question at the same time
+        elapsed_time = (now - session.start_time).total_seconds()
         
-        # 3. Determine which question they should be on
+        # 3. Determine which question they should be on based on exam start time
         # Example: 300 seconds passed / 60 sec per question = Index 5 (Question 6)
         current_index = int(elapsed_time // seconds_per_question)
         
         # 4. Calculate remaining time for the specific question they landed on
         # Example: 320 seconds passed. 320 % 60 = 20 seconds used. 60 - 20 = 40 seconds left.
         time_left_in_current_question = seconds_per_question - (elapsed_time % seconds_per_question)
+        
+        # Ensure time is never negative (safeguard for edge cases)
+        if time_left_in_current_question < 0:
+            time_left_in_current_question = 0
 
         # 5. Check if they ran out of time completely
         if current_index >= question_count:
-            # Auto-submit if time is up
-            # (You might want to mark it finished in DB here)
+            # Time is up for all questions
             return None, "Time is up! The exam duration has passed."
+
+        # 6. Get saved answers for this attempt
+        saved_answers = ExamRepository.get_saved_answers(attempt.id)
+        saved_answers_dict = {ans.question_id: ans.selected_choice_index for ans in saved_answers}
 
         return {
             "attempt_id": attempt.id, # Ensure this matches your route expectation
@@ -113,9 +119,12 @@ class ExamService:
             "exam_config": {
                 "total_duration": session.duration_minutes,
                 "seconds_per_question": seconds_per_question,
-                "start_at_index": current_index,          # <--- SEND THIS TO FRONTEND
-                "initial_question_time": time_left_in_current_question # <--- AND THIS
-            }
+                "start_at_index": current_index,
+                "initial_question_time": time_left_in_current_question,
+                "exam_start_time": session.start_time.isoformat(),  # Use exam start time, not attempt start time
+                "started_at": session.start_time.isoformat()  # Keep for backward compatibility
+            },
+            "saved_answers": saved_answers_dict  # Include saved answers
         }, None
     
     @staticmethod
@@ -151,6 +160,7 @@ class ExamService:
             return None, "Exam already submitted."
 
         # --- DYNAMIC SCORING ENGINE ---
+        # Note: Submission is allowed at any time, but questions auto-advance based on exam start time
         
         # 1. Get total questions count
         total_questions = len(attempt.session.qcm.questions)
@@ -162,6 +172,9 @@ class ExamService:
 
         correct_count = 0
         answers_to_save = []
+        
+        # Get existing saved answers
+        existing_answers = {ans.question_id: ans for ans in attempt.answers}
         
         for ans_data in student_answers_payload:
             q_id = ans_data.get('question_id')
@@ -177,13 +190,20 @@ class ExamService:
             if is_correct:
                 correct_count += 1
             
-            new_ans = StudentAnswer(
-                question_id=q_id,
-                attempt_id=attempt.id,
-                selected_choice_index=idx,
-                is_correct=is_correct
-            )
-            answers_to_save.append(new_ans)
+            # Use existing answer if available, otherwise create new one
+            if q_id in existing_answers:
+                existing_ans = existing_answers[q_id]
+                existing_ans.selected_choice_index = idx
+                existing_ans.is_correct = is_correct
+                answers_to_save.append(existing_ans)
+            else:
+                new_ans = StudentAnswer(
+                    question_id=q_id,
+                    attempt_id=attempt.id,
+                    selected_choice_index=idx,
+                    is_correct=is_correct
+                )
+                answers_to_save.append(new_ans)
 
         # 3. Final Score Calculation
         final_score = correct_count * points_per_question
@@ -215,7 +235,6 @@ class ExamService:
 
         if not is_owner and not is_admin_or_manager:
             return None, "Unauthorized: You do not have permission to view these results."
-        # ------------------------------------
 
         results = []
         for attempt in session.attempts:
@@ -278,3 +297,18 @@ class ExamService:
                 })
                 
         return live_data, None
+    
+    @staticmethod
+    def save_answer(attempt_id, question_id, selected_index):
+        """Save or update a single answer for a question"""
+        attempt = ExamRepository.get_attempt(attempt_id)
+        if not attempt:
+            return None, "Attempt not found"
+        
+        if attempt.finished_at:
+            return None, "Exam already submitted."
+        
+        # Save the answer
+        ExamRepository.save_individual_answer(attempt_id, question_id, selected_index)
+        
+        return {"message": "Answer saved successfully"}, None

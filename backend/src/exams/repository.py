@@ -76,3 +76,33 @@ class ExamRepository:
     def get_all_exams():
         """Returns every single exam session in the database"""
         return ExamSession.query.order_by(ExamSession.start_time.desc()).all()
+    
+    @staticmethod
+    def save_individual_answer(attempt_id, question_id, selected_index):
+        """Save or update a single answer for a question"""
+        # Check if answer already exists
+        existing_answer = StudentAnswer.query.filter_by(
+            attempt_id=attempt_id,
+            question_id=question_id
+        ).first()
+        
+        if existing_answer:
+            # Update existing answer
+            existing_answer.selected_choice_index = selected_index
+        else:
+            # Create new answer
+            new_answer = StudentAnswer(
+                attempt_id=attempt_id,
+                question_id=question_id,
+                selected_choice_index=selected_index,
+                is_correct=False  # Will be calculated on final submission
+            )
+            db.session.add(new_answer)
+        
+        db.session.commit()
+        return existing_answer if existing_answer else new_answer
+    
+    @staticmethod
+    def get_saved_answers(attempt_id):
+        """Get all saved answers for an attempt"""
+        return StudentAnswer.query.filter_by(attempt_id=attempt_id).all()
