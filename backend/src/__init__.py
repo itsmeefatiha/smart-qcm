@@ -1,4 +1,5 @@
 from flask import Flask
+from flasgger import Swagger
 from src.extensions import db, migrate, jwt, cors, bcrypt, mail
 from src.auth import auth_bp
 from src.users import users_bp
@@ -21,6 +22,8 @@ def create_app():
     cors.init_app(app)
     bcrypt.init_app(app)
     mail.init_app(app)
+
+    Swagger(app)
 
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(users_bp, url_prefix="/users")
