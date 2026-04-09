@@ -1,10 +1,37 @@
 from flask import request, jsonify
+from flasgger import swag_from
 from . import auth_bp
 from .service import AuthService
 from .schemas import RegisterSchema, LoginSchema
 from marshmallow import ValidationError
 
 @auth_bp.route('/register', methods=['POST'])
+@swag_from({
+    'tags': ['Auth'],
+    'summary': 'Register a new user',
+    'consumes': ['application/json'],
+    'parameters': [{
+        'in': 'body',
+        'name': 'body',
+        'required': True,
+        'schema': {
+            'type': 'object',
+            'required': ['email', 'password', 'first_name', 'last_name'],
+            'properties': {
+                'email': {'type': 'string'},
+                'password': {'type': 'string'},
+                'first_name': {'type': 'string'},
+                'last_name': {'type': 'string'},
+                'role': {'type': 'string'},
+                'branch_id': {'type': 'integer'},
+            },
+        },
+    }],
+    'responses': {
+        201: {'description': 'User created successfully'},
+        400: {'description': 'Validation error or email failure'},
+    },
+})
 def register():
     data = request.get_json()
     
@@ -26,6 +53,28 @@ def register():
     return jsonify({"message": "User registered successfully. Please check your email to activate."}), 201
 
 @auth_bp.route('/login', methods=['POST'])
+@swag_from({
+    'tags': ['Auth'],
+    'summary': 'Login a user',
+    'consumes': ['application/json'],
+    'parameters': [{
+        'in': 'body',
+        'name': 'body',
+        'required': True,
+        'schema': {
+            'type': 'object',
+            'required': ['email', 'password'],
+            'properties': {
+                'email': {'type': 'string'},
+                'password': {'type': 'string'},
+            },
+        },
+    }],
+    'responses': {
+        200: {'description': 'Login successful'},
+        401: {'description': 'Invalid credentials or inactive account'},
+    },
+})
 def login():
     data = request.get_json()
     
@@ -45,12 +94,33 @@ def login():
     return jsonify(result), 200
 
 @auth_bp.route('/logout', methods=['POST'])
+@swag_from({
+    'tags': ['Auth'],
+    'summary': 'Logout the current user',
+    'responses': {
+        200: {'description': 'Logged out successfully'},
+    },
+})
 def logout():
     # Since we use JWTs, the client just deletes the token.
     # Optionally, add logic here to blacklist the token.
     return jsonify({"message": "Logged out successfully"}), 200
 
 @auth_bp.route('/confirm/<token>', methods=['GET'])
+@swag_from({
+    'tags': ['Auth'],
+    'summary': 'Confirm a user email address',
+    'parameters': [{
+        'in': 'path',
+        'name': 'token',
+        'type': 'string',
+        'required': True,
+    }],
+    'responses': {
+        200: {'description': 'Account activated successfully'},
+        400: {'description': 'Invalid or expired token'},
+    },
+})
 def confirm_email(token):
     success, message = AuthService.confirm_email(token)
     if not success:
@@ -58,6 +128,26 @@ def confirm_email(token):
     return jsonify({"message": message}), 200
 
 @auth_bp.route('/forgot-password', methods=['POST'])
+@swag_from({
+    'tags': ['Auth'],
+    'summary': 'Request a password reset email',
+    'consumes': ['application/json'],
+    'parameters': [{
+        'in': 'body',
+        'name': 'body',
+        'required': True,
+        'schema': {
+            'type': 'object',
+            'required': ['email'],
+            'properties': {
+                'email': {'type': 'string'},
+            },
+        },
+    }],
+    'responses': {
+        200: {'description': 'Reset email handled'},
+    },
+})
 def forgot_password():
     data = request.get_json()
     email = data.get('email')
@@ -67,6 +157,31 @@ def forgot_password():
     return jsonify({"message": "If that email exists, a reset link has been sent."}), 200
 
 @auth_bp.route('/reset-password/<token>', methods=['POST'])
+@swag_from({
+    'tags': ['Auth'],
+    'summary': 'Reset a password using a valid token',
+    'parameters': [{
+        'in': 'path',
+        'name': 'token',
+        'type': 'string',
+        'required': True,
+    }, {
+        'in': 'body',
+        'name': 'body',
+        'required': True,
+        'schema': {
+            'type': 'object',
+            'required': ['password'],
+            'properties': {
+                'password': {'type': 'string'},
+            },
+        },
+    }],
+    'responses': {
+        200: {'description': 'Password updated successfully'},
+        400: {'description': 'Invalid or expired token'},
+    },
+})
 def reset_password(token):
     data = request.get_json()
     new_password = data.get('password')

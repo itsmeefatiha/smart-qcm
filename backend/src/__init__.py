@@ -15,6 +15,18 @@ def create_app():
 
     app.config.from_object('config.Config')
     app.config.from_pyfile('config.py', silent=True)
+    app.config.setdefault('SWAGGER', {
+        'title': 'SmartQCM API',
+        'uiversion': 3,
+        'securityDefinitions': {
+            'BearerAuth': {
+                'type': 'apiKey',
+                'name': 'Authorization',
+                'in': 'header',
+                'description': 'Enter your JWT token as: Bearer <token>',
+            },
+        },
+    })
 
     db.init_app(app)
     migrate.init_app(app, db)

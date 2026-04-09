@@ -1,10 +1,36 @@
 from flask import request, jsonify, Blueprint, send_file
+from flasgger import swag_from
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from .service import QCMService
 from . import qcm_bp
 
 @qcm_bp.route('/generate', methods=['POST'])
 @jwt_required()
+@swag_from({
+    'tags': ['QCM'],
+    'summary': 'Generate a QCM from a document',
+    'security': [{'BearerAuth': []}],
+    'consumes': ['application/json'],
+    'parameters': [{
+        'in': 'body',
+        'name': 'body',
+        'required': True,
+        'schema': {
+            'type': 'object',
+            'required': ['document_id'],
+            'properties': {
+                'document_id': {'type': 'integer'},
+                'num_questions': {'type': 'integer'},
+                'level': {'type': 'string'},
+            },
+        },
+    }],
+    'responses': {
+        201: {'description': 'Exam generated successfully'},
+        400: {'description': 'Missing document ID'},
+        500: {'description': 'Generation error'},
+    },
+})
 def generate():
     """
     Payload: { "document_id": 1, "num_questions": 10, "level": "hard" }
@@ -32,6 +58,14 @@ def generate():
 
 @qcm_bp.route('/', methods=['GET'])
 @jwt_required()
+@swag_from({
+    'tags': ['QCM'],
+    'summary': 'List QCMs for the current user',
+    'security': [{'BearerAuth': []}],
+    'responses': {
+        200: {'description': 'List of QCMs'},
+    },
+})
 def list_qcms():
     """Returns all QCMs for the current user"""
     user_id = get_jwt_identity()
@@ -41,6 +75,21 @@ def list_qcms():
 
 @qcm_bp.route('/<int:qcm_id>', methods=['GET'])
 @jwt_required()
+@swag_from({
+    'tags': ['QCM'],
+    'summary': 'Get a QCM with its questions',
+    'security': [{'BearerAuth': []}],
+    'parameters': [{
+        'in': 'path',
+        'name': 'qcm_id',
+        'type': 'integer',
+        'required': True,
+    }],
+    'responses': {
+        200: {'description': 'QCM details'},
+        404: {'description': 'Exam not found'},
+    },
+})
 def get_qcm(qcm_id):
     """Returns the QCM with all its questions"""
     qcm = QCMService.get_exam_details(qcm_id)
@@ -57,6 +106,21 @@ def get_qcm(qcm_id):
 # --- NEW: Delete QCM Route ---
 @qcm_bp.route('/<int:qcm_id>', methods=['DELETE'])
 @jwt_required()
+@swag_from({
+    'tags': ['QCM'],
+    'summary': 'Delete a QCM',
+    'security': [{'BearerAuth': []}],
+    'parameters': [{
+        'in': 'path',
+        'name': 'qcm_id',
+        'type': 'integer',
+        'required': True,
+    }],
+    'responses': {
+        200: {'description': 'QCM deleted successfully'},
+        403: {'description': 'Unauthorized'},
+    },
+})
 def delete_qcm(qcm_id):
     """Deletes a QCM and all its questions"""
     user_id = get_jwt_identity()
@@ -70,6 +134,32 @@ def delete_qcm(qcm_id):
 # --- NEW: Edit Question Route ---
 @qcm_bp.route('/question/<int:question_id>', methods=['PUT'])
 @jwt_required()
+@swag_from({
+    'tags': ['QCM'],
+    'summary': 'Update a single question',
+    'security': [{'BearerAuth': []}],
+    'parameters': [{
+        'in': 'path',
+        'name': 'question_id',
+        'type': 'integer',
+        'required': True,
+    }, {
+        'in': 'body',
+        'name': 'body',
+        'required': True,
+        'schema': {
+            'type': 'object',
+            'properties': {
+                'text': {'type': 'string'},
+                'choices': {'type': 'array'},
+            },
+        },
+    }],
+    'responses': {
+        200: {'description': 'Question updated successfully'},
+        400: {'description': 'Validation error'},
+    },
+})
 def edit_question(question_id):
     """
     Updates a single question's text and choices.
@@ -93,6 +183,21 @@ def edit_question(question_id):
 
 @qcm_bp.route('/<int:qcm_id>/download', methods=['GET'])
 @jwt_required()
+@swag_from({
+    'tags': ['QCM'],
+    'summary': 'Download a QCM as PDF',
+    'security': [{'BearerAuth': []}],
+    'parameters': [{
+        'in': 'path',
+        'name': 'qcm_id',
+        'type': 'integer',
+        'required': True,
+    }],
+    'responses': {
+        200: {'description': 'PDF file'},
+        404: {'description': 'PDF generation failed'},
+    },
+})
 def download_qcm_pdf(qcm_id):
     """
     Generates and downloads the PDF for a specific QCM.
