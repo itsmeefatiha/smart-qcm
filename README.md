@@ -1,78 +1,76 @@
-# SmartQCM 🎓
+# SmartQCM
 
-> An intelligent AI-powered platform for generating Multiple Choice Questions (QCM) from educational documents and managing exam sessions.
+> SmartQCM helps teachers turn course material into multiple-choice questions, manage exam sessions, and review results without extra manual work.
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
-[![React](https://img.shields.io/badge/React-19-blue.svg)](https://reactjs.org/)
 [![Flask](https://img.shields.io/badge/Flask-3.0-green.svg)](https://flask.palletsprojects.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-12+-blue.svg)](https://www.postgresql.org/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-SmartQCM leverages Google Gemini AI to automatically create high-quality questions from PDF and DOCX files, making it easier for educators to create exams and for students to practice.
-
----
-
-## 📑 Table of Contents
-
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Prerequisites](#-prerequisites)
-- [Quick Start](#-quick-start)
-- [Installation](#-installation)
-- [Running the Application](#-running-the-application)
-- [Project Structure](#-project-structure)
-- [Key Features Explained](#-key-features-explained)
-- [API Documentation](#-api-documentation)
-- [Contributing](#-contributing)
-- [Acknowledgments](#-acknowledgments)
+SmartQCM uses Google Gemini to generate questions from PDF and DOCX files, then stores them in a workflow built for exams, practice, and analytics.
 
 ---
 
-## ✨ Features
+## Table of Contents
 
-### 🤖 AI-Powered QCM Generation
-- **Intelligent Question Generation**: Automatically generates QCM questions from uploaded documents using Google Gemini AI
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Installation](#installation)
+- [Running the Application](#running-the-application)
+- [Project Structure](#project-structure)
+- [Key Features Explained](#key-features-explained)
+- [API Documentation](#api-documentation)
+- [Contributing](#contributing)
+- [Acknowledgments](#acknowledgments)
+
+---
+
+## Features
+
+### AI-Powered QCM Generation
+- **Question Generation**: Generate QCM questions from uploaded documents with Google Gemini AI
 - **Dual Generation Modes**:
   - **Professor Mode**: Creates challenging, analytical questions for official exams
   - **Student Mode**: Generates practice questions focused on key concepts and definitions
-- **Customizable Parameters**: Control question count, difficulty level, and question types
+- **Customizable Parameters**: Adjust question count, difficulty level, and question type
 - **PDF Export**: Generate professional PDF documents with your QCMs
 
-### 📚 Document Management
+### Document Management
 - Upload and manage educational documents (PDF, DOCX)
 - Automatic text extraction from documents
-- Document organization and search
+- Organize and search documents
 - Support for multiple file formats
 
-### 📝 Exam Management
+### Exam Management
 - Create and manage exam sessions
 - Set time limits and access controls
 - Real-time exam monitoring
 - Automatic grading and scoring
-- Detailed exam results and analytics
+- View detailed exam results and analytics
 
-### 👥 Multi-Role System
-- **Professors**: Create QCMs, manage exams, view student results
-- **Students**: Take exams, practice with generated QCMs, view results
-- **Managers**: Oversee all exams and results across the platform
-- **Admins**: Full system administration
+### Multi-Role System
+- **Professors**: Create QCMs, manage exams, and review student results
+- **Students**: Take exams, practice with generated QCMs, and view results
+- **Managers**: Oversee exams and results across the platform
+- **Admins**: Manage the full system
 
-### 📊 Analytics & Statistics
+### Analytics & Statistics
 - Performance dashboards for all user roles
 - Exam result analytics
 - Student progress tracking
-- Visual charts and graphs
+- Charts and graphs for quick review
 
-### 🔐 Security & Authentication
+### Security & Authentication
 - JWT-based authentication
 - Email activation system
 - Password reset functionality
-- Role-based access control (RBAC)
+- Role-based access control
 - Secure file uploads
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend
 - **React 19** - Modern UI library
@@ -95,7 +93,7 @@ SmartQCM leverages Google Gemini AI to automatically create high-quality questio
 
 ---
 
-## 📋 Prerequisites
+## Prerequisites
 
 Before you begin, ensure you have the following installed:
 
@@ -103,37 +101,27 @@ Before you begin, ensure you have the following installed:
 - **Node.js 16+** and npm
 - **PostgreSQL 12+**
 - **Google API Key** (for Gemini AI)
+- **Docker and Docker Compose**
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
-# Clone the repository
 git clone <repository-url>
 cd smart-qcm
 
-# Backend setup
-cd backend
-python -m venv venv
-venv\Scripts\activate  # Windows
-# source venv/bin/activate  # macOS/Linux
-pip install -r requirements.txt
+# Configure environment variables in backend/.env
+# Build and start the stack
+docker compose up -d --build
 
-# Frontend setup
-cd ../frontend
-npm install
-
-# Configure environment variables (see Installation section)
-# Run migrations
-cd ../backend
-flask db upgrade
-
-# Start servers
-python app.py  # Backend on http://localhost:5000
-cd ../frontend
-npm run dev    # Frontend on http://localhost:5173
+# Run database migrations
+docker compose exec backend flask db upgrade
 ```
+
+Open the application at:
+- Frontend: http://localhost
+- Backend API: http://localhost:5000
 
 ---
 
@@ -146,7 +134,7 @@ git clone <repository-url>
 cd smart-qcm
 ```
 
-### 2. Backend Setup
+### 2. Backend Setup (local development)
 
 ```bash
 cd backend
@@ -164,7 +152,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Database Configuration
+### 3. Database Configuration (local development)
 
 Create a PostgreSQL database and update the connection string in your `.env` file:
 
@@ -189,15 +177,18 @@ JWT_SECRET_KEY=your-jwt-secret-key-here
 # Google AI
 GOOGLE_API_KEY=your-google-api-key-here
 
-# Email Configuration (for activation and password reset)
+# Email configuration (for activation and password reset)
 MAIL_SERVER=smtp.gmail.com
 MAIL_PORT=587
 MAIL_USE_TLS=True
 MAIL_USERNAME=your-email@gmail.com
 MAIL_PASSWORD=your-app-password
+
+# Frontend URL used in activation/reset links
+FRONTEND_URL=http://localhost:80
 ```
 
-### 5. Database Migrations
+### 5. Database Migrations (local development)
 
 ```bash
 # Initialize database (first time only)
@@ -207,7 +198,7 @@ flask db init
 flask db upgrade
 ```
 
-### 6. Frontend Setup
+### 6. Frontend Setup (local development)
 
 ```bash
 cd frontend
@@ -226,29 +217,34 @@ VITE_API_URL=http://localhost:5000
 
 ---
 
-## 🏃 Running the Application
+## Running the Application
 
-### Start Backend Server
+### Run with Docker
+
+```bash
+docker compose up -d --build
+docker compose exec backend flask db upgrade
+```
+
+The services will run on:
+- Frontend: `http://localhost`
+- Backend API: `http://localhost:5000`
+
+### Run locally without Docker
 
 ```bash
 cd backend
 python app.py
-```
 
-The backend will run on `http://localhost:5000`
-
-### Start Frontend Development Server
-
-```bash
-cd frontend
+cd ../frontend
 npm run dev
 ```
 
-The frontend will run on `http://localhost:5173` (or another port if 5173 is busy)
+The backend will run on `http://localhost:5000` and the frontend on `http://localhost:5173`.
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 smart-qcm/
@@ -271,9 +267,9 @@ smart-qcm/
 │       └── users/             # User management
 │
 └── frontend/
-  ├── Dockerfile             # Frontend multi-stage image (Node build + Nginx)
-  ├── .dockerignore          # Frontend Docker build context exclusions
-  ├── nginx.conf             # Nginx configuration for serving Vite build
+    ├── Dockerfile             # Frontend multi-stage image (Node build + Nginx)
+    ├── .dockerignore          # Frontend Docker build context exclusions
+    ├── nginx.conf             # Nginx configuration for serving Vite build
     ├── src/
     │   ├── components/        # Reusable React components
     │   ├── contexts/          # React contexts (Auth, etc.)
@@ -286,7 +282,7 @@ smart-qcm/
 
 ---
 
-## 🔑 Key Features Explained
+## Key Features Explained
 
 ### AI Question Generation
 
@@ -306,7 +302,7 @@ The system uses Google Gemini AI to generate questions in two distinct modes:
 
 ---
 
-## 📝 API Documentation
+## API Documentation
 
 The backend includes Swagger/OpenAPI documentation. Once the server is running, visit:
 
@@ -316,7 +312,7 @@ http://localhost:5000/apidocs
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
@@ -328,7 +324,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Google Gemini AI for question generation capabilities
 - The open-source community for excellent tools and libraries
@@ -337,7 +333,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 <div align="center">
 
-**Made with ❤️**
+**Made with care**
 
 [⬆ Back to Top](#smartqcm-)
 
