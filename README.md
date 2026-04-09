@@ -252,7 +252,10 @@ The frontend will run on `http://localhost:5173` (or another port if 5173 is bus
 
 ```
 smart-qcm/
+├── docker-compose.yml         # Multi-service orchestration (db, backend, frontend)
 ├── backend/
+│   ├── Dockerfile             # Backend multi-stage image (Python)
+│   ├── .dockerignore          # Backend Docker build context exclusions
 │   ├── app.py                 # Flask application entry point
 │   ├── config.py              # Configuration settings
 │   ├── requirements.txt       # Python dependencies
@@ -268,6 +271,9 @@ smart-qcm/
 │       └── users/             # User management
 │
 └── frontend/
+  ├── Dockerfile             # Frontend multi-stage image (Node build + Nginx)
+  ├── .dockerignore          # Frontend Docker build context exclusions
+  ├── nginx.conf             # Nginx configuration for serving Vite build
     ├── src/
     │   ├── components/        # Reusable React components
     │   ├── contexts/          # React contexts (Auth, etc.)
