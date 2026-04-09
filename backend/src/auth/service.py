@@ -7,13 +7,15 @@ from .security import generate_token, verify_token, send_email
 class AuthService:
     @staticmethod
     def register_user(data):
+        from flask import current_app
         user, error = UserService.create_user(data, is_active=False)
         if error:
             return None, error
 
         token = generate_token(user.email, salt='email-confirm')
 
-        activation_link = f"http://localhost:5173/activate/{token}"
+        frontend_url = current_app.config['FRONTEND_URL']
+        activation_link = f"{frontend_url}/activate/{token}"
         
         html = f"""
         <p>Welcome {user.first_name}!</p>
@@ -61,12 +63,14 @@ class AuthService:
 
     @staticmethod
     def request_password_reset(email):
+        from flask import current_app
         user = AuthRepository.find_user_by_email(email)
         if not user:
             return None, "User not found"
 
         token = generate_token(user.email, salt='password-reset')
-        reset_link = f"http://localhost:5173/reset-password/{token}"
+        frontend_url = current_app.config['FRONTEND_URL']
+        reset_link = f"{frontend_url}/reset-password/{token}"
         
         html = f"<p>Click here to reset your password:</p><a href='{reset_link}'>Reset Password</a>"
         send_email(user.email, "Password Reset Request", html)
