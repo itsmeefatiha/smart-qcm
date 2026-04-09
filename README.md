@@ -125,7 +125,7 @@ Open the application at:
 
 ---
 
-## 📦 Installation
+## Installation
 
 ### 1. Clone the Repository
 
@@ -333,7 +333,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 <div align="center">
 
-**Made with care**
+**Made with ♥️**
 
 [⬆ Back to Top](#smartqcm-)
 
