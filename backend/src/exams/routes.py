@@ -1,5 +1,6 @@
 from datetime import datetime
 from flask import Blueprint, request, jsonify
+from flasgger import swag_from
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from src.auth.decorators import role_required
@@ -10,6 +11,31 @@ from . import exams_bp
 # 1. CREATE EXAM (Simplified: No end_time needed)
 @exams_bp.route('/create', methods=['POST'])
 @jwt_required()
+@swag_from({
+    'tags': ['Exams'],
+    'summary': 'Create an exam session',
+    'security': [{'BearerAuth': []}],
+    'parameters': [{
+        'in': 'body',
+        'name': 'body',
+        'required': True,
+        'schema': {
+            'type': 'object',
+            'required': ['qcm_id', 'start_time', 'duration_minutes'],
+            'properties': {
+                'qcm_id': {'type': 'integer'},
+                'description': {'type': 'string'},
+                'start_time': {'type': 'string'},
+                'duration_minutes': {'type': 'integer'},
+                'total_grade': {'type': 'number'},
+            },
+        },
+    }],
+    'responses': {
+        201: {'description': 'Session created successfully'},
+        400: {'description': 'Invalid payload'},
+    },
+})
 def create_session():
     """
     Payload: {
@@ -38,6 +64,21 @@ def create_session():
 # 2. DELETE EXAM
 @exams_bp.route('/<int:session_id>', methods=['DELETE'])
 @jwt_required()
+@swag_from({
+    'tags': ['Exams'],
+    'summary': 'Delete an exam session',
+    'security': [{'BearerAuth': []}],
+    'parameters': [{
+        'in': 'path',
+        'name': 'session_id',
+        'type': 'integer',
+        'required': True,
+    }],
+    'responses': {
+        200: {'description': 'Session deleted successfully'},
+        403: {'description': 'Forbidden'},
+    },
+})
 def delete_session(session_id):
     user_id = get_jwt_identity()
     
@@ -51,6 +92,14 @@ def delete_session(session_id):
 # 3. PROFESSOR DASHBOARD (List all exams, even finished ones)
 @exams_bp.route('/professor/list', methods=['GET'])
 @jwt_required()
+@swag_from({
+    'tags': ['Exams'],
+    'summary': 'List exams for a professor',
+    'security': [{'BearerAuth': []}],
+    'responses': {
+        200: {'description': 'List of exam sessions'},
+    },
+})
 def list_professor_exams():
     user_id = get_jwt_identity()
     
@@ -82,6 +131,27 @@ def list_professor_exams():
 # ... (Keep /join, /submit, /active, /results routes unchanged) ...
 @exams_bp.route('/join', methods=['POST'])
 @jwt_required()
+@swag_from({
+    'tags': ['Exams'],
+    'summary': 'Join an exam using a code',
+    'security': [{'BearerAuth': []}],
+    'parameters': [{
+        'in': 'body',
+        'name': 'body',
+        'required': True,
+        'schema': {
+            'type': 'object',
+            'required': ['code'],
+            'properties': {
+                'code': {'type': 'string'},
+            },
+        },
+    }],
+    'responses': {
+        200: {'description': 'Exam started'},
+        400: {'description': 'Invalid code'},
+    },
+})
 def join_session():
     user_id = get_jwt_identity()
     data = request.get_json()
@@ -97,6 +167,24 @@ def join_session():
 
 @exams_bp.route('/submit', methods=['POST'])
 @jwt_required()
+@swag_from({
+    'tags': ['Exams'],
+    'summary': 'Submit an exam attempt',
+    'security': [{'BearerAuth': []}],
+    'parameters': [{
+        'in': 'body',
+        'name': 'body',
+        'required': True,
+        'schema': {
+            'type': 'object',
+            'required': ['attempt_id', 'answers'],
+        },
+    }],
+    'responses': {
+        200: {'description': 'Submission accepted'},
+        400: {'description': 'Invalid payload'},
+    },
+})
 def submit_exam():
     data = request.get_json()
     result, error = ExamService.submit_exam(data.get('attempt_id'), data.get('answers'))
@@ -105,6 +193,24 @@ def submit_exam():
 
 @exams_bp.route('/save-answer', methods=['POST'])
 @jwt_required()
+@swag_from({
+    'tags': ['Exams'],
+    'summary': 'Save one answer during an exam',
+    'security': [{'BearerAuth': []}],
+    'parameters': [{
+        'in': 'body',
+        'name': 'body',
+        'required': True,
+        'schema': {
+            'type': 'object',
+            'required': ['attempt_id', 'question_id', 'selected_index'],
+        },
+    }],
+    'responses': {
+        200: {'description': 'Answer saved'},
+        400: {'description': 'Invalid payload'},
+    },
+})
 def save_answer():
     """Save a single answer for a question"""
     data = request.get_json()
@@ -118,6 +224,14 @@ def save_answer():
 
 @exams_bp.route('/active', methods=['GET'])
 @jwt_required()
+@swag_from({
+    'tags': ['Exams'],
+    'summary': 'List active exams for the current student',
+    'security': [{'BearerAuth': []}],
+    'responses': {
+        200: {'description': 'List of active exams'},
+    },
+})
 def list_active_exams():
     # 1. Get the Student ID from the token
     student_id = get_jwt_identity()
@@ -141,6 +255,21 @@ def list_active_exams():
 
 @exams_bp.route('/<int:session_id>/results', methods=['GET'])
 @jwt_required()
+@swag_from({
+    'tags': ['Exams'],
+    'summary': 'Get exam results for a session',
+    'security': [{'BearerAuth': []}],
+    'parameters': [{
+        'in': 'path',
+        'name': 'session_id',
+        'type': 'integer',
+        'required': True,
+    }],
+    'responses': {
+        200: {'description': 'Exam results'},
+        403: {'description': 'Forbidden'},
+    },
+})
 def view_results(session_id):
     professor_id = get_jwt_identity()
     results, error = ExamService.get_exam_results(professor_id, session_id)
@@ -149,6 +278,21 @@ def view_results(session_id):
 
 @exams_bp.route('/<int:session_id>/live', methods=['GET'])
 @jwt_required()
+@swag_from({
+    'tags': ['Exams'],
+    'summary': 'Track a live exam session',
+    'security': [{'BearerAuth': []}],
+    'parameters': [{
+        'in': 'path',
+        'name': 'session_id',
+        'type': 'integer',
+        'required': True,
+    }],
+    'responses': {
+        200: {'description': 'Live tracking data'},
+        403: {'description': 'Forbidden'},
+    },
+})
 def track_live_exam(session_id):
     """
     Returns a list of students currently taking the exam.
@@ -164,6 +308,15 @@ def track_live_exam(session_id):
 
 @exams_bp.route('/all', methods=['GET'])
 @role_required([UserRole.ADMIN, UserRole.MANAGER]) # Only Admins/Managers can see ALL exams
+@swag_from({
+    'tags': ['Exams'],
+    'summary': 'List all exams (admin/manager only)',
+    'security': [{'BearerAuth': []}],
+    'responses': {
+        200: {'description': 'All exam sessions'},
+        403: {'description': 'Unauthorized'},
+    },
+})
 def list_all_exams():
     """
     Admin Endpoint: List every exam session ever created.

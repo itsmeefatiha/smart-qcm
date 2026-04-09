@@ -1,10 +1,37 @@
 from flask import request, jsonify
+from flasgger import swag_from
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from . import documents_bp
 from .service import DocumentService
 
 @documents_bp.route('/upload', methods=['POST'])
 @jwt_required()
+@swag_from({
+    'tags': ['Documents'],
+    'summary': 'Upload and process a document',
+    'consumes': ['multipart/form-data'],
+    'security': [{'BearerAuth': []}],
+    'parameters': [{
+        'in': 'formData',
+        'name': 'file',
+        'type': 'file',
+        'required': True,
+    }, {
+        'in': 'formData',
+        'name': 'branch_id',
+        'type': 'integer',
+        'required': False,
+    }, {
+        'in': 'formData',
+        'name': 'module',
+        'type': 'string',
+        'required': False,
+    }],
+    'responses': {
+        201: {'description': 'Document processed'},
+        400: {'description': 'Validation or processing error'},
+    },
+})
 def upload():
     # Expects form-data: { "file": ..., "branch_id": 1, "module": "Java" }
     if 'file' not in request.files:
@@ -26,6 +53,14 @@ def upload():
 
 @documents_bp.route('/', methods=['GET'])
 @jwt_required()
+@swag_from({
+    'tags': ['Documents'],
+    'summary': 'List documents available to the current user',
+    'security': [{'BearerAuth': []}],
+    'responses': {
+        200: {'description': 'List of documents'},
+    },
+})
 def list_documents():
     """
     Returns the feed of documents relevant to the specific user.
