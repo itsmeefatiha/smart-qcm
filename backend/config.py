@@ -32,4 +32,6 @@ class Config:
     MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL') == 'True'
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+    RESEND_API_KEY = os.environ.get('RESEND_API_KEY')
+    RESEND_FROM_EMAIL = os.environ.get('RESEND_FROM_EMAIL', 'onboarding@resend.dev')
     FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')

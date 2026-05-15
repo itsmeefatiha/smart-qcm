@@ -1,6 +1,6 @@
 from flask import current_app
-from flask_mail import Message
-from src.extensions import mail
+import resend
+import os
 
 def generate_token(email, salt):
     from itsdangerous import URLSafeTimedSerializer
@@ -16,11 +16,14 @@ def verify_token(token, salt, expiration=3600):
     except (SignatureExpired, BadSignature):
         return None
 
-def send_email(to, subject, template):
-    msg = Message(
-        subject,
-        recipients=[to],
-        html=template,
-        sender=current_app.config['MAIL_USERNAME']
-    )
-    mail.send(msg)
+def send_email(to, subject, html_content):
+    resend.api_key = os.environ.get("RESEND_API_KEY")
+    
+    params = {
+        "from": os.environ.get("RESEND_FROM_EMAIL", "onboarding@resend.dev"),
+        "to": [to],
+        "subject": subject,
+        "html": html_content,
+    }
+    
+    resend.Emails.send(params)
