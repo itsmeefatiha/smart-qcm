@@ -1,3 +1,12 @@
+import socket
+# Force the system to prefer IPv4 over IPv6
+orig_getaddrinfo = socket.getaddrinfo
+
+def filtered_getaddrinfo(*args, **kwargs):
+    res = orig_getaddrinfo(*args, **kwargs)
+    return [r for r in res if r[0] == socket.AF_INET]
+
+socket.getaddrinfo = filtered_getaddrinfo
 import os
 
 from src import create_app
