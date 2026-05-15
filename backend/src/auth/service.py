@@ -25,7 +25,7 @@ class AuthService:
         try:
             send_email(user.email, "Activate your Smart QCM Account", html)
         except Exception as e:
-            return None, "User created but email failed to send."
+            return None, f"SMTP Error: {str(e)}"
 
         return user, None
 
