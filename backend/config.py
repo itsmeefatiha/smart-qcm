@@ -34,4 +34,6 @@ class Config:
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     RESEND_API_KEY = os.environ.get('RESEND_API_KEY')
     RESEND_FROM_EMAIL = os.environ.get('RESEND_FROM_EMAIL', 'onboarding@resend.dev')
+    BREVO_API_KEY = os.environ.get('BREVO_API_KEY')
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@yourdomain.com')
     FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
